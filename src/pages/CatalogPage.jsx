@@ -139,15 +139,15 @@ function FilterPanel({ categories, brands, params, onChange, onClose, isSheet })
             placeholder="Min"
             value={minPrice}
             onChange={e => set('min', e.target.value)}
-            className="flex-1 border border-border-subtle rounded-lg px-2 py-1.5 text-[13px] bg-page-background focus:outline-none focus:border-primary"
+            className="flex-1 w-full min-w-0 border border-border-subtle rounded-lg px-2 py-1.5 text-[13px] bg-page-background focus:outline-none focus:border-primary"
           />
-          <span className="text-outline text-[12px]">–</span>
+          <span className="text-outline text-[12px] flex-shrink-0">–</span>
           <input
             type="number"
             placeholder="Max"
             value={maxPrice}
             onChange={e => set('max', e.target.value)}
-            className="flex-1 border border-border-subtle rounded-lg px-2 py-1.5 text-[13px] bg-page-background focus:outline-none focus:border-primary"
+            className="flex-1 w-full min-w-0 border border-border-subtle rounded-lg px-2 py-1.5 text-[13px] bg-page-background focus:outline-none focus:border-primary"
           />
         </div>
       </div>

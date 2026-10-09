@@ -338,24 +338,24 @@ export default function DashboardPage() {
                         <h4 className="font-bold text-[15px] text-text-primary mb-2">{order.title}</h4>
                         <ul className="text-xs text-text-secondary space-y-1">
                           {order.items.map((item, idx) => (
-                            <li key={idx} className="flex justify-between">
-                              <span>• {item.name} ({item.qty}x)</span>
-                              <span className="font-medium text-text-primary">Rp {(item.price * item.qty).toLocaleString('id-ID')}</span>
+                            <li key={idx} className="flex justify-between gap-2">
+                              <span className="flex-1 min-w-0 truncate">• {item.name} ({item.qty}x)</span>
+                              <span className="font-medium text-text-primary flex-shrink-0">Rp {(item.price * item.qty).toLocaleString('id-ID')}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-border-subtle">
                         <div>
                           <span className="text-xs text-text-secondary block">Total Belanja:</span>
                           <span className="text-base font-bold text-primary">Rp {order.total.toLocaleString('id-ID')}</span>
                         </div>
-                        <div className="flex gap-2">
-                          <button className="text-xs font-semibold px-3 py-1.5 border border-border-subtle rounded-lg hover:bg-surface text-text-primary transition-colors">
+                        <div className="flex gap-2 self-end sm:self-auto">
+                          <button className="text-xs font-semibold px-4 py-2 border border-border-subtle rounded-lg hover:bg-surface text-text-primary transition-colors whitespace-nowrap">
                             Rincian Faktur
                           </button>
-                          <Link to="/katalog" className="text-xs font-semibold px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+                          <Link to="/katalog" className="text-xs font-semibold px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors whitespace-nowrap">
                             Beli Lagi
                           </Link>
                         </div>

@@ -179,7 +179,7 @@ function Header({ categories }) {
               <img 
                 src="/accommerce-blue.png" 
                 alt="Accommerce" 
-                className="h-8 sm:h-9 lg:h-10 w-auto max-w-[190px] sm:max-w-[220px] object-contain object-left" 
+                className="h-10 sm:h-11 lg:h-11 w-auto max-w-[200px] sm:max-w-[240px] lg:max-w-[260px] object-contain object-left" 
               />
               <span className="hidden xl:inline-flex items-center bg-surface text-primary border border-primary-fixed text-[11px] font-semibold px-2 py-0.5 rounded tracking-tight">
                 Enterprise IT & AV

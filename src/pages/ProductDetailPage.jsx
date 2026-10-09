@@ -1007,15 +1007,15 @@ export default function ProductDetailPage() {
             </span>
             Spesifikasi Produk
           </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-[13px]">
+          <div className="overflow-x-hidden">
+            <table className="w-full text-[13px] table-fixed">
               <tbody>
                 {/* Category */}
                 <tr className="border-b border-gray-100">
-                  <td className="py-2.5 pr-4 text-gray-500 w-1/4 align-top">
+                  <td className="py-2.5 pr-3 text-gray-500 w-[30%] align-top break-words">
                     Kategori
                   </td>
-                  <td className="py-2.5 text-primary font-medium">
+                  <td className="py-2.5 text-primary font-medium break-words">
                     {productCats.map((c, i) => (
                       <span key={c.id}>
                         {i > 0 && " > "}
@@ -1028,10 +1028,10 @@ export default function ProductDetailPage() {
                       </span>
                     ))}
                   </td>
-                  <td className="py-2.5 pr-4 text-gray-500 w-1/4 pl-6 align-top">
+                  <td className="py-2.5 pr-3 text-gray-500 w-[20%] pl-3 align-top break-words">
                     Merek
                   </td>
-                  <td className="py-2.5 text-primary font-medium">
+                  <td className="py-2.5 text-primary font-medium break-words">
                     {brand ? (
                       <Link
                         to={`/katalog?brand=${brand.slug}`}
@@ -1052,10 +1052,10 @@ export default function ProductDetailPage() {
                   <td className="py-2.5 font-mono text-gray-800">
                     {product.sku || "—"}
                   </td>
-                  <td className="py-2.5 pr-4 text-gray-500 pl-6 align-top">
+                  <td className="py-2.5 pr-3 text-gray-500 pl-3 align-top break-words w-[20%]">
                     Kondisi
                   </td>
-                  <td className="py-2.5 text-gray-800 font-medium">
+                  <td className="py-2.5 text-gray-800 font-medium break-words">
                     Baru (100% BNIB Segel Resmi)
                   </td>
                 </tr>
@@ -1069,10 +1069,10 @@ export default function ProductDetailPage() {
                       a.name.toLowerCase().includes("garansi"),
                     )?.value || "12 Bulan (1 Tahun)"}
                   </td>
-                  <td className="py-2.5 pr-4 text-gray-500 pl-6 align-top">
+                  <td className="py-2.5 pr-3 text-gray-500 pl-3 align-top break-words w-[20%]">
                     Jenis Garansi
                   </td>
-                  <td className="py-2.5 text-gray-800">
+                  <td className="py-2.5 text-gray-800 break-words">
                     Garansi Resmi Distributor Indonesia
                   </td>
                 </tr>
@@ -1092,10 +1092,10 @@ export default function ProductDetailPage() {
                       </span>
                     )}
                   </td>
-                  <td className="py-2.5 pr-4 text-gray-500 pl-6 align-top">
+                  <td className="py-2.5 pr-3 text-gray-500 pl-3 align-top break-words w-[20%]">
                     Dikirim dari
                   </td>
-                  <td className="py-2.5 text-gray-800">
+                  <td className="py-2.5 text-gray-800 break-words">
                     Kota Tangerang Selatan, Banten
                   </td>
                 </tr>
@@ -1135,6 +1135,7 @@ export default function ProductDetailPage() {
             <div
               className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-[13px]"
               dangerouslySetInnerHTML={{ __html: product.description }}
+              style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
             />
           </div>
         )}
@@ -1158,24 +1159,20 @@ export default function ProductDetailPage() {
       </div>
 
       {/* ── Mobile sticky Add-to-Cart bar ──────────────────────────────── */}
-      <div className="fixed bottom-[60px] left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3 lg:hidden z-30 shadow-lg">
+      <div className="fixed bottom-[60px] left-0 right-0 bg-white border-t border-gray-200 px-3 py-2.5 flex items-center gap-2 lg:hidden z-30 shadow-lg" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)' }}>
         <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
           <button
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
             disabled={quantity <= 1}
-            className="w-9 h-10 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
+            className="w-8 h-9 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
           >
-            <span className="material-symbols-outlined text-[16px]">
-              remove
-            </span>
+            <span className="material-symbols-outlined text-[16px]">remove</span>
           </button>
-          <span className="w-8 text-center font-semibold text-[14px]">
-            {quantity}
-          </span>
+          <span className="w-7 text-center font-semibold text-[13px]">{quantity}</span>
           <button
             onClick={() => setQuantity((q) => Math.min(stock, q + 1))}
             disabled={quantity >= stock}
-            className="w-9 h-10 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
+            className="w-8 h-9 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
           >
             <span className="material-symbols-outlined text-[16px]">add</span>
           </button>
@@ -1183,20 +1180,19 @@ export default function ProductDetailPage() {
         <button
           onClick={handleAddToCart}
           disabled={isOutOfStock}
-          className={`flex-1 h-10 rounded-xl font-bold text-[13px] flex items-center justify-center gap-1.5 border-2 transition-all
+          className={`flex-1 min-w-0 h-9 rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 border-2 transition-all
             ${added ? "bg-emerald-50 border-emerald-500 text-emerald-700" : isOutOfStock ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed" : "border-primary text-primary"}`}
         >
-          <span className="material-symbols-outlined text-[17px]">
-            {added ? "check" : "add_shopping_cart"}
-          </span>
-          {added ? "Ditambahkan!" : "Keranjang"}
+          <span className="material-symbols-outlined text-[15px]">{added ? "check" : "add_shopping_cart"}</span>
+          <span className="truncate">{added ? "Ditambahkan!" : "Keranjang"}</span>
         </button>
         <button
           onClick={handleBuyNow}
           disabled={isOutOfStock}
-          className="flex-1 h-10 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-[13px] flex items-center justify-center gap-1.5 transition-all disabled:bg-gray-200 disabled:text-gray-400"
+          className="flex-1 min-w-0 h-9 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 transition-all disabled:bg-gray-200 disabled:text-gray-400 px-2"
         >
-          Beli Sekarang
+          <span className="truncate">Beli Sekarang</span>
+          <span className="material-symbols-outlined text-[15px] flex-shrink-0">arrow_forward</span>
         </button>
       </div>
     </div>

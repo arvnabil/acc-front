@@ -376,6 +376,101 @@ export default function HomePage({ featuredProducts: propFeatured, saleProducts:
         </div>
       </section>
 
+      {/* Flash Sale Section */}
+      {(loading || flashSale.length > 0) && (
+        <section className="max-w-[1440px] mx-auto px-gutter lg:px-margin py-space-xl w-full">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-space-lg">
+            <div className="flex items-center justify-between sm:justify-start gap-3">
+              <div className="flex items-center gap-2 bg-red-500 text-white px-3 py-1.5 rounded-lg">
+                <span className="material-symbols-outlined text-[18px] animate-pulse">local_fire_department</span>
+                <span className="font-bold text-[14px] tracking-wide uppercase">Flash Sale</span>
+              </div>
+              {/* Countdown */}
+              <div className="flex items-center gap-1.5">
+                <span className="font-sku text-[10px] text-text-secondary hidden sm:inline">Berakhir dalam:</span>
+                {[countdown.h, countdown.m, countdown.s].map((v, i) => (
+                  <span key={i} className="bg-surface border border-border-subtle rounded-md px-2 py-0.5 font-mono font-bold text-[13px] text-text-primary min-w-[28px] text-center">
+                    {String(v).padStart(2, '0')}
+                  </span>
+                ))}
+              </div>
+              {/* Mobile: Lihat Semua inline */}
+              <Link to="/katalog?sort=sale" className="sm:hidden font-label-sm text-label-sm text-red-500 hover:text-red-600 flex items-center gap-0.5 font-semibold ml-auto shrink-0 whitespace-nowrap">
+                <span>Semua</span>
+                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+              </Link>
+            </div>
+            {/* Desktop: Lihat Semua */}
+            <Link to="/katalog?sort=sale" className="hidden sm:flex font-label-sm text-label-sm text-red-500 hover:text-red-600 items-center gap-1 font-semibold shrink-0 whitespace-nowrap">
+              <span>Lihat Semua</span>
+              <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+            </Link>
+          </div>
+
+          {/* Horizontal Scroll Rail */}
+          {loading ? (
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex-shrink-0 w-[170px] h-[220px] bg-surface rounded-xl animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-border-subtle scrollbar-track-transparent">
+              {flashSale.map(p => <FlashSaleCard key={p.id} product={p} />)}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Featured Products */}
+      <section className="max-w-[1440px] mx-auto px-gutter lg:px-margin py-space-xl w-full">
+        <div className="flex items-center justify-between mb-space-lg">
+          <div>
+            <h2 className="font-headline-section text-[18px] lg:text-[26px] text-text-primary font-bold">Produk Unggulan</h2>
+            <p className="font-body-md text-[12px] lg:text-[13px] text-text-secondary">Pilihan terbaik dari katalog kami</p>
+          </div>
+          <Link to="/katalog?sort=featured" className="font-label-sm text-label-sm text-primary hover:text-secondary flex items-center gap-0.5 font-semibold shrink-0 whitespace-nowrap">
+            <span className="hidden sm:inline">Lihat Semua</span>
+            <span className="sm:hidden">Semua</span>
+            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+          </Link>
+        </div>
+        {loading ? (
+          <ProductGridSkeleton count={8} />
+        ) : featured.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+            {featured.map(p => <ProductCard key={p.id} product={p} />)}
+          </div>
+        ) : (
+          <p className="text-text-secondary text-center py-8">Belum ada produk unggulan.</p>
+        )}
+      </section>
+
+      {/* Sale Products */}
+      {(loading || sale.length > 0) && (
+        <section className="max-w-[1440px] mx-auto px-gutter lg:px-margin py-space-xl w-full">
+          <div className="flex items-center justify-between mb-space-lg">
+            <div>
+              <h2 className="font-headline-section text-[18px] lg:text-[26px] text-text-primary font-bold">Promo & Diskon</h2>
+              <p className="font-body-md text-[12px] lg:text-[13px] text-text-secondary">Produk dengan harga spesial terbatas</p>
+            </div>
+            <Link to="/katalog?sort=sale" className="font-label-sm text-label-sm text-primary hover:text-secondary flex items-center gap-0.5 font-semibold shrink-0 whitespace-nowrap">
+              <span className="hidden sm:inline">Semua Promo</span>
+              <span className="sm:hidden">Semua</span>
+              <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+            </Link>
+          </div>
+          {loading ? (
+            <ProductGridSkeleton count={8} />
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+              {sale.map(p => <ProductCard key={p.id} product={p} />)}
+            </div>
+          )}
+        </section>
+      )}
+
       {/* Brand Partners */}
       {brands.length > 0 && (
         <section className="max-w-[1440px] mx-auto px-gutter lg:px-margin py-space-xl w-full">
@@ -426,53 +521,6 @@ export default function HomePage({ featuredProducts: propFeatured, saleProducts:
         </section>
       )}
 
-      {/* Flash Sale Section */}
-      {(loading || flashSale.length > 0) && (
-        <section className="max-w-[1440px] mx-auto px-gutter lg:px-margin py-space-xl w-full">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-space-lg">
-            <div className="flex items-center justify-between sm:justify-start gap-3">
-              <div className="flex items-center gap-2 bg-red-500 text-white px-3 py-1.5 rounded-lg">
-                <span className="material-symbols-outlined text-[18px] animate-pulse">local_fire_department</span>
-                <span className="font-bold text-[14px] tracking-wide uppercase">Flash Sale</span>
-              </div>
-              {/* Countdown */}
-              <div className="flex items-center gap-1.5">
-                <span className="font-sku text-[10px] text-text-secondary hidden sm:inline">Berakhir dalam:</span>
-                {[countdown.h, countdown.m, countdown.s].map((v, i) => (
-                  <span key={i} className="bg-surface border border-border-subtle rounded-md px-2 py-0.5 font-mono font-bold text-[13px] text-text-primary min-w-[28px] text-center">
-                    {String(v).padStart(2, '0')}
-                  </span>
-                ))}
-              </div>
-              {/* Mobile: Lihat Semua inline */}
-              <Link to="/katalog?sort=sale" className="sm:hidden font-label-sm text-label-sm text-red-500 hover:text-red-600 flex items-center gap-0.5 font-semibold ml-auto shrink-0 whitespace-nowrap">
-                <span>Semua</span>
-                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-              </Link>
-            </div>
-            {/* Desktop: Lihat Semua */}
-            <Link to="/katalog?sort=sale" className="hidden sm:flex font-label-sm text-label-sm text-red-500 hover:text-red-600 items-center gap-1 font-semibold shrink-0 whitespace-nowrap">
-              <span>Lihat Semua</span>
-              <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-            </Link>
-          </div>
-
-          {/* Horizontal Scroll Rail */}
-          {loading ? (
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-[170px] h-[220px] bg-surface rounded-xl animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-border-subtle scrollbar-track-transparent">
-              {flashSale.map(p => <FlashSaleCard key={p.id} product={p} />)}
-            </div>
-          )}
-        </section>
-      )}
-
       {/* Categories Grid */}
       {cats.length > 0 && (
         <section className="max-w-[1440px] mx-auto px-gutter lg:px-margin py-space-xl w-full">
@@ -510,54 +558,6 @@ export default function HomePage({ featuredProducts: propFeatured, saleProducts:
               </Link>
             ))}
           </div>
-        </section>
-      )}
-
-      {/* Featured Products */}
-      <section className="max-w-[1440px] mx-auto px-gutter lg:px-margin py-space-xl w-full">
-        <div className="flex items-center justify-between mb-space-lg">
-          <div>
-            <h2 className="font-headline-section text-[18px] lg:text-[26px] text-text-primary font-bold">Produk Unggulan</h2>
-            <p className="font-body-md text-[12px] lg:text-[13px] text-text-secondary">Pilihan terbaik dari katalog kami</p>
-          </div>
-          <Link to="/katalog?sort=featured" className="font-label-sm text-label-sm text-primary hover:text-secondary flex items-center gap-0.5 font-semibold shrink-0 whitespace-nowrap">
-            <span className="hidden sm:inline">Lihat Semua</span>
-            <span className="sm:hidden">Semua</span>
-            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-          </Link>
-        </div>
-        {loading ? (
-          <ProductGridSkeleton count={8} />
-        ) : featured.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
-            {featured.map(p => <ProductCard key={p.id} product={p} />)}
-          </div>
-        ) : (
-          <p className="text-text-secondary text-center py-8">Belum ada produk unggulan.</p>
-        )}
-      </section>
-
-      {/* Sale Products */}
-      {(loading || sale.length > 0) && (
-        <section className="max-w-[1440px] mx-auto px-gutter lg:px-margin py-space-xl w-full">
-          <div className="flex items-center justify-between mb-space-lg">
-            <div>
-              <h2 className="font-headline-section text-[18px] lg:text-[26px] text-text-primary font-bold">Promo & Diskon</h2>
-              <p className="font-body-md text-[12px] lg:text-[13px] text-text-secondary">Produk dengan harga spesial terbatas</p>
-            </div>
-            <Link to="/katalog?sort=sale" className="font-label-sm text-label-sm text-primary hover:text-secondary flex items-center gap-0.5 font-semibold shrink-0 whitespace-nowrap">
-              <span className="hidden sm:inline">Semua Promo</span>
-              <span className="sm:hidden">Semua</span>
-              <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-            </Link>
-          </div>
-          {loading ? (
-            <ProductGridSkeleton count={8} />
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
-              {sale.map(p => <ProductCard key={p.id} product={p} />)}
-            </div>
-          )}
         </section>
       )}
 
