@@ -49,14 +49,18 @@ export function ToastProvider({ children }) {
         >
           {/* Icon Badge */}
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-            toast.type === 'wishlist'
-              ? 'bg-red-50 text-red-500'
-              : toast.type === 'info'
-              ? 'bg-blue-50 text-primary'
-              : 'bg-emerald-50 text-emerald-600'
+            toast.type === 'wishlist' ? 'bg-red-50 text-red-500'
+            : toast.type === 'info' ? 'bg-blue-50 text-primary'
+            : toast.type === 'error' ? 'bg-red-50 text-red-500'
+            : toast.type === 'success' ? 'bg-emerald-50 text-emerald-600'
+            : 'bg-emerald-50 text-emerald-600'
           }`}>
             <span className="material-symbols-outlined text-[22px]">
-              {toast.type === 'wishlist' ? 'favorite' : toast.type === 'info' ? 'favorite_border' : 'shopping_bag'}
+              {toast.type === 'wishlist' ? 'favorite' 
+               : toast.type === 'info' ? 'info' 
+               : toast.type === 'error' ? 'error'
+               : toast.type === 'success' ? 'check_circle'
+               : 'shopping_bag'}
             </span>
           </div>
 

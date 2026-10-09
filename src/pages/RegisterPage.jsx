@@ -53,7 +53,7 @@ export default function RegisterPage() {
         {/* Top Logo */}
         <div className="relative z-10">
           <Link to="/">
-            <img src="/accommerce-white.png" alt="Accommerce" className="h-10 w-auto object-contain" />
+            <img src="/accommerce-blue.png" alt="Accommerce" className="h-10 w-auto object-contain brightness-0 invert" />
           </Link>
         </div>
 
