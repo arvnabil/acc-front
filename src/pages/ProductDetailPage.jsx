@@ -1359,25 +1359,27 @@ export default function ProductDetailPage() {
       {/* ── Mobile sticky Add-to-Cart bar ──────────────────────────────── */}
       <div className="fixed bottom-[60px] left-0 right-0 bg-white border-t border-border-subtle px-3 py-2 flex items-center gap-2 lg:hidden z-30 shadow-[0_-4px_16px_rgba(11,28,48,0.08)]" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }}>
         {/* Compact Stepper */}
-        <div className="flex items-center border border-border-subtle rounded-xl bg-surface/50 h-10 px-1 flex-shrink-0">
-          <button
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            disabled={quantity <= 1}
-            className="w-6 h-full flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 active:scale-95"
-            aria-label="Kurangi jumlah"
-          >
-            <span className="material-symbols-outlined text-[15px]">remove</span>
-          </button>
-          <span className="w-6 text-center font-bold text-[12px] text-text-primary">{quantity}</span>
-          <button
-            onClick={() => setQuantity((q) => Math.min(stock, q + 1))}
-            disabled={quantity >= stock}
-            className="w-6 h-full flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 active:scale-95"
-            aria-label="Tambah jumlah"
-          >
-            <span className="material-symbols-outlined text-[15px]">add</span>
-          </button>
-        </div>
+        {!isRental && !isLicense && (
+          <div className="flex items-center border border-border-subtle rounded-xl bg-surface/50 h-10 px-1 flex-shrink-0">
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={quantity <= 1}
+              className="w-6 h-full flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 active:scale-95"
+              aria-label="Kurangi jumlah"
+            >
+              <span className="material-symbols-outlined text-[15px]">remove</span>
+            </button>
+            <span className="w-6 text-center font-bold text-[12px] text-text-primary">{quantity}</span>
+            <button
+              onClick={() => setQuantity((q) => Math.min(stock, q + 1))}
+              disabled={quantity >= stock}
+              className="w-6 h-full flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 active:scale-95"
+              aria-label="Tambah jumlah"
+            >
+              <span className="material-symbols-outlined text-[15px]">add</span>
+            </button>
+          </div>
+        )}
 
         {/* Add to Cart button */}
         <button
@@ -1386,8 +1388,8 @@ export default function ProductDetailPage() {
           className={`flex-1 min-w-0 h-10 rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 border-2 transition-all active:scale-98
             ${added ? "bg-emerald-50 border-emerald-500 text-emerald-700" : isOutOfStock ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed" : "border-primary text-primary hover:bg-primary/5"}`}
         >
-          <span className="material-symbols-outlined text-[16px] flex-shrink-0">{added ? "check" : "add_shopping_cart"}</span>
-          <span className="truncate">{added ? "Ditambahkan!" : "+ Keranjang"}</span>
+          <span className="material-symbols-outlined text-[16px] flex-shrink-0">{added ? "check" : isRental ? "event_available" : isLicense ? "key" : "add_shopping_cart"}</span>
+          <span className="truncate">{added ? "Ditambahkan!" : isRental ? "+ Booking" : isLicense ? "+ Lisensi" : "+ Keranjang"}</span>
         </button>
 
         {/* Buy Now button */}
@@ -1396,7 +1398,7 @@ export default function ProductDetailPage() {
           disabled={isOutOfStock}
           className="flex-1 min-w-0 h-10 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 transition-all disabled:bg-gray-200 disabled:text-gray-400 shadow-sm shadow-primary/20 active:scale-98 px-2"
         >
-          <span className="whitespace-nowrap">Beli Sekarang</span>
+          <span className="whitespace-nowrap">{isRental ? "Booking & Bayar" : isLicense ? "Aktifkan Lisensi" : "Beli Sekarang"}</span>
           <span className="material-symbols-outlined text-[15px] flex-shrink-0">arrow_forward</span>
         </button>
       </div>
