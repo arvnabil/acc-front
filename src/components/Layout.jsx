@@ -359,6 +359,10 @@ function BottomNav() {
   const { user } = useAuth();
   const [showAkunDrawer, setShowAkunDrawer] = useState(false);
 
+  useEffect(() => {
+    setShowAkunDrawer(false);
+  }, [location.pathname]);
+
   const navItems = [
     { path: '/', icon: 'home', label: 'Beranda', exact: true },
     { path: '/kategori', icon: 'category', label: 'Kategori' },
@@ -376,72 +380,86 @@ function BottomNav() {
 
   return (
     <>
-      {/* Slide-up Akun Drawer */}
-      {showAkunDrawer && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/40 z-[60] md:hidden"
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/40 z-[60] md:hidden transition-opacity duration-300 ${
+          showAkunDrawer ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setShowAkunDrawer(false)}
+      />
+
+      {/* Slide-up Akun Drawer Sheet */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 bg-card-bg rounded-t-2xl z-[61] md:hidden shadow-[0_-4px_24px_rgba(11,28,48,0.18)] transition-transform duration-300 ease-out will-change-transform ${
+          showAkunDrawer ? 'translate-y-0' : 'translate-y-full pointer-events-none'
+        }`}
+        style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}
+      >
+        {/* Handle bar & Close button */}
+        <div className="relative pt-3 pb-1 px-4 flex items-center justify-between">
+          <div className="w-8" />
+          <button
             onClick={() => setShowAkunDrawer(false)}
+            aria-label="Tutup Menu"
+            className="w-10 h-1.5 rounded-full bg-border-subtle hover:bg-outline transition-colors cursor-pointer"
           />
-          {/* Drawer */}
-          <div
-            className="fixed bottom-[60px] left-0 right-0 bg-card-bg rounded-t-2xl z-[61] md:hidden shadow-[0_-4px_24px_rgba(11,28,48,0.14)] animate-[slideUp_0.25s_ease-out]"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          <button
+            onClick={() => setShowAkunDrawer(false)}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-text-primary active:bg-surface transition-colors"
+            aria-label="Tutup Menu"
           >
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-border-subtle" />
-            </div>
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
 
-            {/* User greeting */}
-            <div className="flex items-center gap-3 px-5 py-3 border-b border-border-subtle">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                {user ? (
-                  <span className="font-bold text-primary text-[16px]">{user.name.charAt(0).toUpperCase()}</span>
-                ) : (
-                  <span className="material-symbols-outlined text-[22px] text-primary">person</span>
-                )}
-              </div>
-              <div>
-                <div className="font-bold text-[14px] text-text-primary">
-                  {user ? `Halo, ${user.name.split(' ')[0]}` : 'Selamat datang!'}
-                </div>
-                <div className="text-[11px] text-text-secondary">
-                  {user ? user.email : 'Masuk untuk menikmati lebih banyak fitur'}
-                </div>
-              </div>
+        {/* User greeting */}
+        <div className="flex items-center gap-3 px-5 py-3 border-b border-border-subtle">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            {user ? (
+              <span className="font-bold text-primary text-[16px]">{user.name.charAt(0).toUpperCase()}</span>
+            ) : (
+              <span className="material-symbols-outlined text-[22px] text-primary">person</span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-[14px] text-text-primary truncate">
+              {user ? `Halo, ${user.name.split(' ')[0]}` : 'Selamat datang!'}
             </div>
-
-            {/* Menu items */}
-            <div className="grid grid-cols-5 gap-1 p-4">
-              {akunMenuItems.map(item => {
-                const Wrapper = item.href ? 'a' : Link;
-                const props = item.href
-                  ? { href: item.href, target: '_blank', rel: 'noopener noreferrer' }
-                  : { to: item.path };
-                return (
-                  <Wrapper
-                    key={item.label}
-                    {...props}
-                    onClick={() => setShowAkunDrawer(false)}
-                    className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-surface active:bg-surface transition-colors"
-                  >
-                    <div className={`w-12 h-12 rounded-full bg-surface flex items-center justify-center ${item.color}`}>
-                      <span className="material-symbols-outlined text-[24px]">{item.icon}</span>
-                    </div>
-                    <span className="text-[10px] font-semibold text-text-primary text-center leading-tight">{item.label}</span>
-                  </Wrapper>
-                );
-              })}
+            <div className="text-[11px] text-text-secondary truncate">
+              {user ? user.email : 'Masuk untuk menikmati lebih banyak fitur'}
             </div>
           </div>
-        </>
-      )}
+        </div>
+
+        {/* Menu items */}
+        <div className="grid grid-cols-5 gap-1 p-4">
+          {akunMenuItems.map(item => {
+            const Wrapper = item.href ? 'a' : Link;
+            const props = item.href
+              ? { href: item.href, target: '_blank', rel: 'noopener noreferrer' }
+              : { to: item.path };
+            return (
+              <Wrapper
+                key={item.label}
+                {...props}
+                onClick={() => setShowAkunDrawer(false)}
+                className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-surface active:bg-surface transition-colors"
+              >
+                <div className={`w-12 h-12 rounded-full bg-surface flex items-center justify-center ${item.color}`}>
+                  <span className="material-symbols-outlined text-[24px]">{item.icon}</span>
+                </div>
+                <span className="text-[10px] font-semibold text-text-primary text-center leading-tight">{item.label}</span>
+              </Wrapper>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Bottom Nav Bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 bg-card-bg border-t border-border-subtle z-50 md:hidden"
+        className={`fixed bottom-0 left-0 right-0 bg-card-bg border-t border-border-subtle z-50 md:hidden transition-transform duration-300 ease-out will-change-transform ${
+          showAkunDrawer ? 'translate-y-full pointer-events-none' : 'translate-y-0'
+        }`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         aria-label="Navigasi utama"
       >
