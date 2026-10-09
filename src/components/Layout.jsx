@@ -418,8 +418,8 @@ function Header({ categories }) {
                       Masuk / Daftar
                     </span>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-surface text-primary flex items-center justify-center cursor-pointer group-hover:bg-primary-container transition-colors">
-                    <span className="material-symbols-outlined text-white text-[18px]">
+                  <div className="w-8 h-8 rounded-full bg-surface text-primary flex hover:text-white items-center justify-center cursor-pointer group-hover:bg-primary-container transition-colors">
+                    <span className="material-symbols-outlined hover:text-white text-[18px]">
                       person
                     </span>
                   </div>
