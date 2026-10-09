@@ -435,6 +435,20 @@ export default function ProductDetailPage() {
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
 
+  // Rental (Sewa) state
+  const [rentalStartDate, setRentalStartDate] = useState('');
+  const [rentalEndDate, setRentalEndDate] = useState('');
+
+  // License (Cloud/Software) state
+  const LICENSE_DURATIONS = [
+    { id: '1y', label: '1 Tahun', multiplier: 1 },
+    { id: '2y', label: '2 Tahun', multiplier: 1.8 },
+    { id: '3y', label: '3 Tahun', multiplier: 2.5 },
+    { id: 'lifetime', label: 'Lifetime', multiplier: 4 },
+  ];
+  const [licenseDuration, setLicenseDuration] = useState('1y');
+  const [licenseSeats, setLicenseSeats] = useState(1);
+
   // Scroll to top on slug change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -503,16 +517,51 @@ export default function ProductDetailPage() {
   const primaryCat = productCats.find((c) => !c.parent_id) || productCats[0];
   const subCat = productCats.find((c) => c.parent_id);
 
+  // Detect product type
+  const RENTAL_CAT_IDS = [13, 14]; // 'Sewa', 'Sewa Produk'
+  const LICENSE_CAT_IDS = [28]; // 'Cloud' (software/license)
+  const isRental = (product?.category_ids || []).some(id => RENTAL_CAT_IDS.includes(id))
+    || (product?.name || '').toLowerCase().includes('sewa ');
+  const isLicense = (product?.category_ids || []).some(id => LICENSE_CAT_IDS.includes(id))
+    || ['zoom', 'microsoft', 'google workspace', 'teams', 'adobe', 'lisensi', 'license'].some(
+        kw => (product?.name || '').toLowerCase().includes(kw)
+      );
+
+  // Rental price calculation
+  const rentalDays = (() => {
+    if (!rentalStartDate || !rentalEndDate) return 0;
+    const d1 = new Date(rentalStartDate);
+    const d2 = new Date(rentalEndDate);
+    const diff = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diff);
+  })();
+  const rentalTotal = rentalDays > 0 ? displayPrice * rentalDays : displayPrice;
+
+  // License price calculation
+  const selectedLicenseDuration = LICENSE_DURATIONS.find(d => d.id === licenseDuration);
+  const licenseTotal = Math.round(displayPrice * (selectedLicenseDuration?.multiplier || 1) * licenseSeats);
+
   function handleAddToCart() {
     if (isOutOfStock) return;
-    addItem(product, quantity, selectedVariant);
+
+    if (isRental) {
+      if (!rentalStartDate || !rentalEndDate || rentalDays <= 0) {
+        showToast({ type: 'error', title: 'Pilih Tanggal Sewa', message: 'Pilih tanggal mulai dan selesai sewa terlebih dahulu.' });
+        return;
+      }
+      addItem({ ...product, name: `${product.name} (Sewa ${rentalDays} hari)`, regular_price: rentalTotal, sale_price: null }, 1, selectedVariant);
+    } else if (isLicense) {
+      addItem({ ...product, name: `${product.name} - ${selectedLicenseDuration?.label} x${licenseSeats} Seat`, regular_price: licenseTotal, sale_price: null }, 1, selectedVariant);
+    } else {
+      addItem(product, quantity, selectedVariant);
+    }
+
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
-
     showToast({
       type: 'cart',
-      title: 'Berhasil Masuk Keranjang',
-      message: `${quantity}x ${product.name}`,
+      title: isRental ? `Booking ${rentalDays} Hari Ditambahkan!` : isLicense ? 'Lisensi Ditambahkan!' : 'Berhasil Masuk Keranjang',
+      message: product.name,
       link: '/keranjang',
       linkText: 'Lihat Keranjang',
     });
@@ -520,8 +569,18 @@ export default function ProductDetailPage() {
 
   function handleBuyNow() {
     if (isOutOfStock) return;
-    addItem(product, quantity, selectedVariant);
-    navigate("/checkout");
+    if (isRental) {
+      if (!rentalStartDate || !rentalEndDate || rentalDays <= 0) {
+        showToast({ type: 'error', title: 'Pilih Tanggal Sewa', message: 'Pilih tanggal mulai dan selesai sewa terlebih dahulu.' });
+        return;
+      }
+      addItem({ ...product, name: `${product.name} (Sewa ${rentalDays} hari)`, regular_price: rentalTotal, sale_price: null }, 1, selectedVariant);
+    } else if (isLicense) {
+      addItem({ ...product, name: `${product.name} - ${selectedLicenseDuration?.label} x${licenseSeats} Seat`, regular_price: licenseTotal, sale_price: null }, 1, selectedVariant);
+    } else {
+      addItem(product, quantity, selectedVariant);
+    }
+    navigate('/checkout');
   }
 
   if (loading) {
@@ -815,46 +874,162 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Quantity + Stock */}
-              <div className="flex items-center gap-3">
-                <span className="text-[13px] text-gray-500 w-20 flex-shrink-0">
-                  Kuantitas:
-                </span>
-                <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    disabled={quantity <= 1}
-                    className="w-9 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-40"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">
-                      remove
-                    </span>
-                  </button>
-                  <span className="w-12 text-center font-semibold text-[15px] text-gray-800">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity((q) => Math.min(stock, q + 1))}
-                    disabled={quantity >= stock}
-                    className="w-9 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-40"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">
-                      add
-                    </span>
-                  </button>
+              {/* ── Rental: Date Picker ──────────────────────────────── */}
+              {isRental && (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-2.5">
+                    <span className="material-symbols-outlined text-orange-500 text-[18px] flex-shrink-0">event_available</span>
+                    <span className="text-[13px] font-semibold text-orange-700">Produk Sewa — Pilih Periode Booking</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Tanggal Mulai</label>
+                      <input
+                        type="date"
+                        value={rentalStartDate}
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={e => {
+                          setRentalStartDate(e.target.value);
+                          if (rentalEndDate && e.target.value >= rentalEndDate) setRentalEndDate('');
+                        }}
+                        className="border border-gray-300 rounded-xl px-3 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Tanggal Selesai</label>
+                      <input
+                        type="date"
+                        value={rentalEndDate}
+                        min={rentalStartDate || new Date().toISOString().split('T')[0]}
+                        onChange={e => setRentalEndDate(e.target.value)}
+                        className="border border-gray-300 rounded-xl px-3 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white disabled:bg-gray-50"
+                        disabled={!rentalStartDate}
+                      />
+                    </div>
+                  </div>
+
+                  {rentalDays > 0 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
+                      <div className="text-[13px] text-blue-700">
+                        <span className="font-bold">{rentalDays} hari</span> × {formatPrice(displayPrice)}/hari
+                      </div>
+                      <div className="font-extrabold text-[18px] text-primary">
+                        {formatPrice(rentalTotal)}
+                      </div>
+                    </div>
+                  )}
+
+                  {rentalDays === 0 && !rentalStartDate && (
+                    <p className="text-[12px] text-gray-400 text-center py-2">Pilih tanggal mulai dan selesai untuk melihat total harga</p>
+                  )}
                 </div>
-                {!isOutOfStock && (
-                  <span className="text-[12px] text-gray-500">
-                    Tersisa <strong>{stock} unit</strong>
-                    {stock <= 15 ? " (Stok Gudang BSD)" : ""}
-                  </span>
-                )}
-                {isOutOfStock && (
-                  <span className="text-[12px] font-bold text-red-600">
-                    Stok Habis
-                  </span>
-                )}
-              </div>
+              )}
+
+              {/* ── License: Duration + Seats ────────────────────────── */}
+              {isLicense && !isRental && (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl px-4 py-2.5">
+                    <span className="material-symbols-outlined text-purple-600 text-[18px] flex-shrink-0">key</span>
+                    <span className="text-[13px] font-semibold text-purple-700">Lisensi Software — Pilih Durasi & Jumlah Seat</span>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Durasi Lisensi</label>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      {LICENSE_DURATIONS.map(d => (
+                        <button
+                          key={d.id}
+                          onClick={() => setLicenseDuration(d.id)}
+                          className={`py-2.5 rounded-xl border-2 text-[13px] font-bold transition-all ${
+                            licenseDuration === d.id
+                              ? 'border-primary bg-primary text-white shadow-md shadow-primary/20'
+                              : 'border-gray-200 text-gray-700 hover:border-primary/50'
+                          }`}
+                        >
+                          {d.label}
+                          {d.id !== 'lifetime' && (
+                            <span className={`block text-[10px] font-normal ${licenseDuration === d.id ? 'text-blue-100' : 'text-gray-400'}`}>
+                              {d.id === '1y' ? 'Standar' : d.id === '2y' ? 'Hemat 10%' : 'Hemat 17%'}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Jumlah User / Seat</label>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
+                        <button
+                          onClick={() => setLicenseSeats(s => Math.max(1, s - 1))}
+                          className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-40"
+                          disabled={licenseSeats <= 1}
+                        >
+                          <span className="material-symbols-outlined text-[18px]">remove</span>
+                        </button>
+                        <input
+                          type="number"
+                          min={1}
+                          max={999}
+                          value={licenseSeats}
+                          onChange={e => setLicenseSeats(Math.max(1, parseInt(e.target.value) || 1))}
+                          className="w-16 text-center font-bold text-[15px] text-gray-800 border-x border-gray-200 h-10 focus:outline-none"
+                        />
+                        <button
+                          onClick={() => setLicenseSeats(s => s + 1)}
+                          className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">add</span>
+                        </button>
+                      </div>
+                      <span className="text-[12px] text-gray-500">user / seat</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-center justify-between">
+                    <div className="text-[13px] text-purple-700">
+                      {licenseSeats} seat × {selectedLicenseDuration?.label}
+                    </div>
+                    <div className="font-extrabold text-[18px] text-primary">
+                      {formatPrice(licenseTotal)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Regular Product: Quantity ────────────────────────── */}
+              {!isRental && !isLicense && (
+                <div className="flex items-center gap-3">
+                  <span className="text-[13px] text-gray-500 w-20 flex-shrink-0">Kuantitas:</span>
+                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                      disabled={quantity <= 1}
+                      className="w-9 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-40"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">remove</span>
+                    </button>
+                    <span className="w-12 text-center font-semibold text-[15px] text-gray-800">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity((q) => Math.min(stock, q + 1))}
+                      disabled={quantity >= stock}
+                      className="w-9 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-40"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">add</span>
+                    </button>
+                  </div>
+                  {!isOutOfStock && (
+                    <span className="text-[12px] text-gray-500">
+                      Tersisa <strong>{stock} unit</strong>{stock <= 15 ? " (Stok Gudang BSD)" : ""}
+                    </span>
+                  )}
+                  {isOutOfStock && (
+                    <span className="text-[12px] font-bold text-red-600">Stok Habis</span>
+                  )}
+                </div>
+              )}
 
               {/* Main CTA buttons */}
               <div className="flex gap-2.5 sm:gap-3 mt-2">
@@ -871,19 +1046,21 @@ export default function ProductDetailPage() {
                     }`}
                 >
                   <span className="material-symbols-outlined text-[19px] flex-shrink-0">
-                    {added ? "check" : "add_shopping_cart"}
+                    {added ? "check" : isRental ? "event_available" : isLicense ? "key" : "add_shopping_cart"}
                   </span>
-                  <span className="truncate">{added ? "Ditambahkan!" : "+ Masukkan Keranjang"}</span>
+                  <span className="truncate">
+                    {added ? "Ditambahkan!" : isRental ? "+ Booking Sekarang" : isLicense ? "+ Tambah Lisensi" : "+ Masukkan Keranjang"}
+                  </span>
                 </button>
                 <button
                   onClick={handleBuyNow}
                   disabled={isOutOfStock}
                   className="flex-1 min-w-0 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed shadow-md shadow-primary/20 active:scale-98"
                 >
-                  <span className="truncate">Beli Sekarang</span>
-                  <span className="material-symbols-outlined text-[19px] flex-shrink-0">
-                    arrow_forward
+                  <span className="truncate">
+                    {isRental ? "Booking & Bayar" : isLicense ? "Aktifkan Lisensi" : "Beli Sekarang"}
                   </span>
+                  <span className="material-symbols-outlined text-[19px] flex-shrink-0">arrow_forward</span>
                 </button>
               </div>
 
