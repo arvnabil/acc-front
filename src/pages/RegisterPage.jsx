@@ -43,73 +43,78 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-stretch">
       {/* ════════════════════════════════════════
-          LEFT PANEL — Solid Accommerce Blue
+          LEFT PANEL — Accommerce Primary Blue (Shopping Theme)
       ════════════════════════════════════════ */}
-      <div className="hidden lg:flex flex-col relative w-[45%] bg-[#082f49] p-10 justify-between">
+      <div className="hidden lg:flex flex-col relative w-[45%] bg-[#1a56db] p-10 justify-between overflow-hidden">
+        {/* Decorative background shapes */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-white opacity-5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3"></div>
+
         {/* Top Logo */}
-        <div className="flex items-center gap-3">
-          <div className="bg-white p-1.5 rounded-xl">
-            <img src="/accommerce-blue.png" alt="Logo" className="h-8 w-auto object-contain" />
-          </div>
-          <div>
-            <div className="text-white font-bold text-lg leading-tight tracking-wide">ACCOMMERCE</div>
-            <div className="text-sky-200/70 text-[11px] font-semibold tracking-wider">B2B PROCUREMENT PORTAL</div>
-          </div>
+        <div className="relative z-10">
+          <Link to="/">
+            <img src="/accommerce-white.png" alt="Accommerce" className="h-10 w-auto object-contain" />
+          </Link>
         </div>
 
-        {/* Center UI Card (Glassmorphism) */}
-        <div className="mx-auto w-full max-w-[420px]">
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl">
+        {/* Center UI Card (Shopping Features) */}
+        <div className="relative z-10 mx-auto w-full max-w-[420px]">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
-                </div>
-                <span className="text-sky-100 text-[10px] font-bold tracking-widest ml-2 uppercase">Ekosistem Pengadaan IT</span>
+                <span className="material-symbols-outlined text-white text-[24px]">shopping_bag</span>
+                <span className="text-white text-[12px] font-bold tracking-widest uppercase">Platform Belanja Online</span>
               </div>
-              <span className="bg-[#0369a1] text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Online</span>
+              <span className="bg-white text-[#1a56db] text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Trusted</span>
             </div>
 
             <div className="flex flex-col gap-3">
-              {/* Item 1 */}
-              <div className="bg-white/5 hover:bg-white/10 transition-colors rounded-xl p-4 flex items-center justify-between border border-white/5">
+              {/* Feature 1 */}
+              <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-xl p-4 flex items-center justify-between border border-white/10">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-amber-400 text-[20px]">storefront</span>
-                  <span className="text-white text-sm font-semibold">Harga Khusus Reseller</span>
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-white text-[20px]">local_shipping</span>
+                  </div>
+                  <span className="text-white text-[15px] font-bold">Gratis Ongkir</span>
                 </div>
-                <span className="bg-white/10 text-sky-100 text-[10px] font-bold px-2 py-1 rounded">Eksklusif</span>
+                <span className="bg-green-400 text-green-900 text-[10px] font-bold px-2 py-1 rounded-full">Klaim Tiap Hari</span>
               </div>
-              {/* Item 2 */}
-              <div className="bg-white/5 hover:bg-white/10 transition-colors rounded-xl p-4 flex items-center justify-between border border-white/5">
+              {/* Feature 2 */}
+              <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-xl p-4 flex items-center justify-between border border-white/10">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-blue-400 text-[20px]">inventory_2</span>
-                  <span className="text-white text-sm font-semibold">Produk Sewa & Lisensi</span>
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-white text-[20px]">verified</span>
+                  </div>
+                  <span className="text-white text-[15px] font-bold">100% Original</span>
                 </div>
-                <span className="bg-white/10 text-sky-100 text-[10px] font-bold px-2 py-1 rounded">Hardware & Cloud</span>
+                <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-1 rounded-full">Garansi Resmi</span>
               </div>
-              {/* Item 3 */}
-              <div className="bg-white/5 hover:bg-white/10 transition-colors rounded-xl p-4 flex items-center justify-between border border-white/5">
+              {/* Feature 3 */}
+              <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-xl p-4 flex items-center justify-between border border-white/10">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-emerald-400 text-[20px]">receipt_long</span>
-                  <span className="text-white text-sm font-semibold">Sistem PO & Invoice</span>
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-white text-[20px]">bolt</span>
+                  </div>
+                  <span className="text-white text-[15px] font-bold">Flash Sale</span>
                 </div>
-                <span className="bg-white/10 text-sky-100 text-[10px] font-bold px-2 py-1 rounded">Terintegrasi</span>
+                <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full">Diskon s/d 90%</span>
               </div>
             </div>
           </div>
           
-          <p className="text-sky-100/70 text-sm mt-8 leading-relaxed font-medium">
-            Platform pengadaan B2B untuk produk IT, Audio Visual, Hardware, dan Lisensi Software dengan sistem harga bertingkat untuk kelancaran bisnis Anda.
-          </p>
+          <div className="text-center mt-8">
+            <h2 className="text-white text-2xl font-bold mb-2">Belanja IT Lebih Mudah</h2>
+            <p className="text-blue-100 text-[14px] leading-relaxed font-medium">
+              Daftar sekarang untuk mendapatkan voucher pengguna baru dan berbagai penawaran eksklusif.
+            </p>
+          </div>
         </div>
 
         {/* Bottom Footer */}
-        <div className="flex items-center justify-between pt-6 border-t border-white/10 text-[12px] text-sky-100/50 font-medium">
-          <span>&copy; PT. Accommerce Teknologi Indonesia</span>
+        <div className="relative z-10 flex items-center justify-between pt-6 border-t border-white/20 text-[12px] text-blue-200 font-medium">
+          <span>&copy; 2024 Accommerce Indonesia</span>
           <div className="flex gap-4">
-            <a href="#/" className="hover:text-white transition-colors">Panduan</a>
+            <Link to="/" className="hover:text-white transition-colors">Beranda</Link>
             <a href="#/" className="hover:text-white transition-colors">Bantuan</a>
           </div>
         </div>
@@ -125,59 +130,59 @@ export default function RegisterPage() {
             <img src="/accommerce-blue.png" alt="Accommerce" className="h-10 w-auto" />
           </div>
 
-          <h1 className="text-[24px] font-bold text-slate-800 mb-1">Buat Akun Baru</h1>
-          <p className="text-[14px] text-slate-500 mb-8">Daftar gratis dan nikmati akses ke ribuan produk enterprise.</p>
+          <h1 className="text-[26px] font-bold text-gray-900 mb-1">Daftar Akun Baru</h1>
+          <p className="text-[14px] text-gray-500 mb-8">Daftar gratis untuk mulai berbelanja di Accommerce.</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {/* Nama Field */}
-            <div className="flex flex-col gap-2">
-              <label className="text-[12px] font-bold text-slate-600 tracking-wide uppercase">Nama Lengkap</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-bold text-gray-700 uppercase tracking-wider">Nama Lengkap</label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">person</span>
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">person</span>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  placeholder="John Doe"
-                  className="w-full bg-[#f0f9ff] border-2 border-[#e0f2fe] rounded-xl pl-12 pr-4 py-3 text-[14px] text-slate-800 focus:outline-none focus:border-[#0284c7] focus:bg-white transition-colors placeholder:text-slate-400"
+                  placeholder="Nama Lengkap Anda"
+                  className="w-full bg-white border border-gray-300 rounded-xl pl-11 pr-4 py-3.5 text-[14px] text-gray-800 focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db] transition-colors placeholder:text-gray-400"
                 />
               </div>
             </div>
 
             {/* Email Field */}
-            <div className="flex flex-col gap-2">
-              <label className="text-[12px] font-bold text-slate-600 tracking-wide uppercase">Alamat Email</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-bold text-gray-700 uppercase tracking-wider">Email / No. HP</label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">mail</span>
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">mail</span>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="nama@email.com"
-                  className="w-full bg-[#f0f9ff] border-2 border-[#e0f2fe] rounded-xl pl-12 pr-4 py-3 text-[14px] text-slate-800 focus:outline-none focus:border-[#0284c7] focus:bg-white transition-colors placeholder:text-slate-400"
+                  placeholder="Masukkan email / no. HP"
+                  className="w-full bg-white border border-gray-300 rounded-xl pl-11 pr-4 py-3.5 text-[14px] text-gray-800 focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db] transition-colors placeholder:text-gray-400"
                 />
               </div>
             </div>
 
             {/* Password Field */}
-            <div className="flex flex-col gap-2">
-              <label className="text-[12px] font-bold text-slate-600 tracking-wide uppercase">Kata Sandi</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-bold text-gray-700 uppercase tracking-wider">Kata Sandi</label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">lock</span>
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">lock</span>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Minimal 8 karakter"
-                  className="w-full bg-[#f0f9ff] border-2 border-[#e0f2fe] rounded-xl pl-12 pr-12 py-3 text-[14px] text-slate-800 focus:outline-none focus:border-[#0284c7] focus:bg-white transition-colors placeholder:text-slate-400"
+                  className="w-full bg-white border border-gray-300 rounded-xl pl-11 pr-11 py-3.5 text-[14px] text-gray-800 focus:outline-none focus:border-[#1a56db] focus:ring-1 focus:ring-[#1a56db] transition-colors placeholder:text-gray-400"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
                 </button>
@@ -188,12 +193,12 @@ export default function RegisterPage() {
             <label className="flex items-start gap-3 cursor-pointer group mt-2">
               <div className="relative mt-0.5 flex-shrink-0">
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="sr-only" />
-                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${agreed ? 'border-[#0284c7] bg-[#0284c7]' : 'border-slate-300 bg-white group-hover:border-[#0ea5e9]'}`}>
+                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${agreed ? 'border-[#1a56db] bg-[#1a56db]' : 'border-gray-300 bg-white group-hover:border-[#3b82f6]'}`}>
                   {agreed && <span className="material-symbols-outlined text-white text-[14px] font-bold">check</span>}
                 </div>
               </div>
-              <span className="text-[12px] text-slate-500 leading-relaxed">
-                Dengan mendaftar, saya menyetujui <a href="#/" className="font-semibold text-[#0284c7]">Syarat & Ketentuan</a> dan <a href="#/" className="font-semibold text-[#0284c7]">Kebijakan Privasi</a>.
+              <span className="text-[13px] text-gray-500 leading-relaxed">
+                Dengan mendaftar, saya menyetujui <a href="#/" className="font-semibold text-[#1a56db]">Syarat & Ketentuan</a> dan <a href="#/" className="font-semibold text-[#1a56db]">Kebijakan Privasi</a>.
               </span>
             </label>
 
@@ -201,21 +206,21 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading || googleLoading || !agreed}
-              className="w-full bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-[14px] py-4 rounded-xl mt-1 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#1a56db] hover:bg-[#1e40af] text-white font-bold text-[15px] py-3.5 rounded-xl mt-2 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <><span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Mendaftar...</>
               ) : (
-                'Buat Akun Sekarang'
+                'Daftar'
               )}
             </button>
           </form>
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-slate-200"></div>
-            <span className="text-[12px] font-medium text-slate-400">Atau</span>
-            <div className="flex-1 h-px bg-slate-200"></div>
+            <div className="flex-1 h-px bg-gray-200"></div>
+            <span className="text-[12px] font-medium text-gray-400">Atau daftar dengan</span>
+            <div className="flex-1 h-px bg-gray-200"></div>
           </div>
 
           {/* Google Button */}
@@ -223,10 +228,10 @@ export default function RegisterPage() {
             type="button"
             onClick={handleGoogleRegister}
             disabled={loading || googleLoading}
-            className="w-full bg-white border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-[14px] py-3.5 rounded-xl transition-all flex items-center justify-center gap-3"
+            className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold text-[14px] py-3.5 rounded-xl transition-all flex items-center justify-center gap-3 shadow-sm"
           >
             {googleLoading ? (
-              <span className="w-5 h-5 border-2 border-slate-300 border-t-[#0284c7] rounded-full animate-spin" />
+              <span className="w-5 h-5 border-2 border-gray-300 border-t-[#1a56db] rounded-full animate-spin" />
             ) : (
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -235,11 +240,11 @@ export default function RegisterPage() {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
             )}
-            Daftar dengan Google
+            Google
           </button>
 
-          <p className="text-center text-[13px] text-slate-500 mt-6">
-            Sudah punya akun? <Link to="/login" className="font-bold text-[#0284c7] hover:underline">Masuk di sini</Link>
+          <p className="text-center text-[14px] text-gray-500 mt-8">
+            Sudah punya akun? <Link to="/login" className="font-bold text-[#1a56db] hover:underline">Masuk di sini</Link>
           </p>
         </div>
       </div>
