@@ -23,6 +23,7 @@ import BantuanPage from './pages/BantuanPage';
 import PwaBadge from './components/PwaBadge';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function NotFound() {
   return (
@@ -56,13 +57,13 @@ function App() {
             <Route path="/produk/:slug" element={<ProductDetailPage />} />
             <Route path="/keranjang" element={<CartPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
             <Route path="/minta-penawaran" element={<RfqPage />} />
             <Route path="/lacak-pesanan" element={<LacakPesananPage />} />
             <Route path="/bantuan" element={<BantuanPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/akun" element={<DashboardPage />} />
+            <Route path="/akun" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
