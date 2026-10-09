@@ -8,6 +8,7 @@ import { formatPrice } from '../services/productService';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useToast } from '../context/ToastContext';
 
 // ─── Badge top-left ───────────────────────────────────────────────────────
 function CardBadge({ product }) {
@@ -62,6 +63,7 @@ export default function ProductCard({ product }) {
   const [wishlistAnim, setWishlistAnim] = useState(false);
 
   const { wishlist, toggleWishlist: toggleWishlistGlobal, isInWishlist } = useWishlist();
+  const { showToast } = useToast();
 
   const image = (product.images?.[0] || '').split(',')[0].trim() ||
     `https://picsum.photos/seed/${product.sku || product.id}/400/400`;
@@ -81,7 +83,16 @@ export default function ProductCard({ product }) {
     setWishlistAnim(true);
     setTimeout(() => setWishlistAnim(false), 400);
 
+    const willAdd = !isWishlisted;
     toggleWishlistGlobal(wishlistKey);
+
+    showToast({
+      type: willAdd ? 'wishlist' : 'info',
+      title: willAdd ? 'Ditambahkan ke Wishlist' : 'Dihapus dari Wishlist',
+      message: product.name,
+      link: '/wishlist',
+      linkText: 'Lihat Wishlist',
+    });
   }
 
   function handleAddToCart(e) {
@@ -91,6 +102,14 @@ export default function ProductCard({ product }) {
     addItem(product, 1);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
+
+    showToast({
+      type: 'cart',
+      title: 'Berhasil Masuk Keranjang',
+      message: product.name,
+      link: '/keranjang',
+      linkText: 'Lihat Keranjang',
+    });
   }
 
   return (

@@ -591,66 +591,66 @@ export default function CheckoutPage() {
   // STEP 2: MAIN CHECKOUT FORM (PERSIS STATIC TEMPLATE & SCREENSHOT)
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-[1440px] mx-auto px-gutter lg:px-margin py-space-xl w-full">
+    <div className="max-w-[1440px] mx-auto px-3 sm:px-gutter lg:px-margin py-4 sm:py-space-xl w-full overflow-x-hidden">
       {/* Breadcrumb + Steps */}
-      <div className="mb-space-xl">
+      <div className="mb-4 sm:mb-space-xl">
         <h1 className="font-headline-hero-mobile lg:font-headline-hero text-text-primary font-bold">Checkout Belanja</h1>
-        <p className="font-body-md text-[14px] text-text-secondary mt-1">Lengkapi data pengiriman dan metode pembayaran Anda.</p>
+        <p className="font-body-md text-[13px] sm:text-[14px] text-text-secondary mt-1">Lengkapi data pengiriman dan metode pembayaran Anda.</p>
         
-        {/* Step indicators */}
-        <div className="flex items-center gap-2 mt-4 max-w-[580px]">
-          <Link to="/keranjang" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
-            <div className="w-7 h-7 rounded-full bg-surface border-2 border-border-subtle flex items-center justify-center text-[12px] font-bold text-text-secondary">✓</div>
-            <span className="text-[12px] text-text-secondary">Keranjang</span>
+        {/* Step indicators (Responsive on mobile) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 mt-4 max-w-full overflow-x-hidden pb-1">
+          <Link to="/keranjang" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity shrink-0">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-surface border-2 border-border-subtle flex items-center justify-center text-[11px] sm:text-[12px] font-bold text-text-secondary">✓</div>
+            <span className="text-[11px] sm:text-[12px] text-text-secondary hidden sm:inline">Keranjang</span>
           </Link>
-          <div className="flex-1 h-px bg-primary mx-1"></div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[12px] font-bold text-on-primary">2</div>
-            <span className="text-[12px] font-bold text-primary">Checkout</span>
+          <div className="flex-1 min-w-[8px] h-px bg-primary mx-1"></div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary flex items-center justify-center text-[11px] sm:text-[12px] font-bold text-on-primary">2</div>
+            <span className="text-[11px] sm:text-[12px] font-bold text-primary">Checkout</span>
           </div>
-          <div className="flex-1 h-px bg-border-subtle mx-1"></div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-7 h-7 rounded-full bg-surface border-2 border-border-subtle flex items-center justify-center text-[12px] font-bold text-text-secondary">3</div>
-            <span className="text-[12px] text-text-secondary">Pembayaran</span>
+          <div className="flex-1 min-w-[8px] h-px bg-border-subtle mx-1"></div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-surface border-2 border-border-subtle flex items-center justify-center text-[11px] sm:text-[12px] font-bold text-text-secondary">3</div>
+            <span className="text-[11px] sm:text-[12px] text-text-secondary hidden sm:inline">Pembayaran</span>
           </div>
-          <div className="flex-1 h-px bg-border-subtle mx-1"></div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-7 h-7 rounded-full bg-surface border-2 border-border-subtle flex items-center justify-center text-[12px] font-bold text-text-secondary">4</div>
-            <span className="text-[12px] text-text-secondary">Selesai</span>
+          <div className="flex-1 min-w-[8px] h-px bg-border-subtle mx-1"></div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-surface border-2 border-border-subtle flex items-center justify-center text-[11px] sm:text-[12px] font-bold text-text-secondary">4</div>
+            <span className="text-[11px] sm:text-[12px] text-text-secondary hidden sm:inline">Selesai</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-xl">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-space-xl">
         {/* Form Left Side (8 cols) */}
-        <div className="lg:col-span-8 flex flex-col gap-space-xl">
+        <div className="lg:col-span-8 flex flex-col gap-4 sm:gap-space-xl">
 
           {/* 1. Produk Dipesan */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-space-xl shadow-sm">
-            <h3 className="font-title-card text-[16px] font-bold text-text-primary mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
+          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-6 shadow-sm">
+            <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary mb-3 sm:mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] flex items-center justify-center font-bold">1</span>
               <span>Produk Dipesan</span>
             </h3>
-            <div className="flex flex-col gap-space-md">
+            <div className="flex flex-col gap-3">
               {items.map((item, idx) => (
                 <div
                   key={item.key}
-                  className="flex items-center gap-space-md bg-surface border border-border-subtle rounded-lg p-3 hover:border-primary transition-colors"
+                  className="flex items-center gap-3 bg-surface border border-border-subtle rounded-lg p-2.5 sm:p-3 hover:border-primary transition-colors"
                 >
                   <img
                     src={item.image || `https://picsum.photos/seed/${item.sku || idx}/120/120`}
                     alt={item.name}
-                    className="w-16 h-16 rounded-lg object-cover shrink-0"
+                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover shrink-0"
                     onError={e => { e.target.src = `https://picsum.photos/seed/${idx}/120/120`; }}
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="font-sku text-[11px] text-text-secondary uppercase">{item.sku || 'LOG-960-001308'}</div>
-                    <div className="font-title-card text-[14px] font-bold text-text-primary line-clamp-1">{item.name}</div>
-                    <div className="flex items-center justify-between mt-1">
-                      <div className="font-price text-[14px] text-primary font-bold">
-                        {formatPrice(item.price)} <span className="text-text-secondary font-normal text-[12px]">× {item.quantity}</span>
+                    <div className="font-sku text-[10px] sm:text-[11px] text-text-secondary uppercase truncate">{item.sku || 'LOG-960-001308'}</div>
+                    <div className="font-title-card text-[13px] sm:text-[14px] font-bold text-text-primary truncate">{item.name}</div>
+                    <div className="flex items-center justify-between mt-1 flex-wrap gap-1">
+                      <div className="font-price text-[13px] sm:text-[14px] text-primary font-bold">
+                        {formatPrice(item.price)} <span className="text-text-secondary font-normal text-[11px]">× {item.quantity}</span>
                       </div>
-                      <div className="text-[12px] text-text-secondary font-semibold">
+                      <div className="text-[11px] sm:text-[12px] text-text-secondary font-semibold">
                         = {formatPrice(item.price * item.quantity)}
                       </div>
                     </div>
@@ -661,65 +661,65 @@ export default function CheckoutPage() {
           </div>
 
           {/* 2. Informasi Pembeli */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-space-xl shadow-sm">
-            <h3 className="font-title-card text-[16px] font-bold text-text-primary mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
+          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-6 shadow-sm">
+            <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary mb-3 sm:mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] flex items-center justify-center font-bold">2</span>
               <span>Informasi Pembeli</span>
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-space-md">
               <div>
-                <label className="block font-label-sm text-label-sm text-text-primary mb-1">Nama Lengkap *</label>
+                <label className="block font-label-sm text-[12px] text-text-primary mb-1">Nama Lengkap *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2.5 font-label-sm text-text-primary focus:outline-none focus:border-primary"
+                  className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
                 />
               </div>
               <div>
-                <label className="block font-label-sm text-label-sm text-text-primary mb-1">Email *</label>
+                <label className="block font-label-sm text-[12px] text-text-primary mb-1">Email *</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2.5 font-label-sm text-text-primary focus:outline-none focus:border-primary"
+                  className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
                 />
               </div>
               <div>
-                <label className="block font-label-sm text-label-sm text-text-primary mb-1">Nama Penerima *</label>
+                <label className="block font-label-sm text-[12px] text-text-primary mb-1">Nama Penerima *</label>
                 <input
                   type="text"
                   value={formData.recipientName}
                   onChange={e => setFormData({ ...formData, recipientName: e.target.value })}
-                  className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2.5 font-label-sm text-text-primary focus:outline-none focus:border-primary"
+                  className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
                 />
               </div>
               <div>
-                <label className="block font-label-sm text-label-sm text-text-primary mb-1">Nomor HP / WhatsApp *</label>
+                <label className="block font-label-sm text-[12px] text-text-primary mb-1">Nomor HP / WhatsApp *</label>
                 <input
                   type="text"
                   value={formData.phone}
                   onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2.5 font-label-sm text-text-primary focus:outline-none focus:border-primary"
+                  className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
                 />
               </div>
             </div>
           </div>
 
           {/* 3. Alamat Pengiriman */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-space-xl shadow-sm">
-            <h3 className="font-title-card text-[16px] font-bold text-text-primary mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
+          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-6 shadow-sm">
+            <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary mb-3 sm:mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] flex items-center justify-center font-bold">3</span>
               <span>Alamat Pengiriman</span>
             </h3>
-            <div className="flex flex-col gap-space-md">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+            <div className="flex flex-col gap-3 sm:gap-space-md">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-space-md">
                 <div>
-                  <label className="block font-label-sm text-label-sm text-text-primary mb-1">Provinsi *</label>
+                  <label className="block font-label-sm text-[12px] text-text-primary mb-1">Provinsi *</label>
                   <select
                     value={formData.province}
                     onChange={e => setFormData({ ...formData, province: e.target.value })}
-                    className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2.5 font-label-sm text-text-primary focus:outline-none focus:border-primary cursor-pointer"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary cursor-pointer"
                   >
                     <option>Banten</option>
                     <option>DKI Jakarta</option>
@@ -731,11 +731,11 @@ export default function CheckoutPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-label-sm text-label-sm text-text-primary mb-1">Kota / Kabupaten *</label>
+                  <label className="block font-label-sm text-[12px] text-text-primary mb-1">Kota / Kabupaten *</label>
                   <select
                     value={formData.city}
                     onChange={e => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2.5 font-label-sm text-text-primary focus:outline-none focus:border-primary cursor-pointer"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary cursor-pointer"
                   >
                     <option>Tangerang Selatan</option>
                     <option>Tangerang</option>
@@ -749,32 +749,32 @@ export default function CheckoutPage() {
                 </div>
               </div>
               <div>
-                <label className="block font-label-sm text-label-sm text-text-primary mb-1">Alamat Lengkap *</label>
+                <label className="block font-label-sm text-[12px] text-text-primary mb-1">Alamat Lengkap *</label>
                 <textarea
                   rows="3"
                   value={formData.address}
                   onChange={e => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full bg-surface border border-border-subtle rounded-lg p-3 font-label-sm text-text-primary focus:outline-none focus:border-primary"
+                  className="w-full bg-surface border border-border-subtle rounded-lg p-2.5 sm:p-3 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-space-md">
                 <div>
-                  <label className="block font-label-sm text-label-sm text-text-primary mb-1">Kode Pos</label>
+                  <label className="block font-label-sm text-[12px] text-text-primary mb-1">Kode Pos</label>
                   <input
                     type="text"
                     value={formData.postalCode}
                     onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
-                    className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2.5 font-label-sm text-text-primary focus:outline-none focus:border-primary"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
                   />
                 </div>
                 <div>
-                  <label className="block font-label-sm text-label-sm text-text-primary mb-1">Catatan Pengiriman</label>
+                  <label className="block font-label-sm text-[12px] text-text-primary mb-1">Catatan Pengiriman</label>
                   <input
                     type="text"
                     placeholder="Cth: Kirim ke lantai 3, hub ke satpam"
                     value={formData.notes}
                     onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2.5 font-label-sm text-text-primary focus:outline-none focus:border-primary"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -782,38 +782,38 @@ export default function CheckoutPage() {
           </div>
 
           {/* 4. Pilih Ekspedisi & Layanan Pengiriman */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-space-xl shadow-sm">
-            <h3 className="font-title-card text-[16px] font-bold text-text-primary mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
+          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-6 shadow-sm">
+            <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary mb-3 sm:mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] flex items-center justify-center font-bold">4</span>
               <span>Pilih Ekspedisi & Layanan Pengiriman</span>
             </h3>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2.5 sm:gap-3">
               {SHIPPING_OPTIONS.map(opt => {
                 const isSelected = selectedShipping.id === opt.id;
                 return (
                   <label
                     key={opt.id}
                     onClick={() => setSelectedShipping(opt)}
-                    className={`flex items-center justify-between gap-3 p-4 rounded-lg bg-surface cursor-pointer transition-all ${
+                    className={`flex items-start sm:items-center justify-between gap-2.5 sm:gap-3 p-3.5 sm:p-4 rounded-xl bg-surface cursor-pointer transition-all ${
                       isSelected
                         ? 'border-2 border-primary bg-primary/[0.02]'
                         : 'border border-border-subtle hover:border-primary'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
                       <input
                         type="radio"
                         name="shipping"
                         checked={isSelected}
                         onChange={() => setSelectedShipping(opt)}
-                        className="text-primary accent-primary"
+                        className="text-primary accent-primary mt-0.5 sm:mt-0 flex-shrink-0"
                       />
-                      <div>
-                        <div className="font-bold text-[14px] text-text-primary">{opt.title}</div>
-                        <div className="text-[12px] text-text-secondary">{opt.desc}</div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-[13px] sm:text-[14px] text-text-primary leading-tight">{opt.title}</div>
+                        <div className="text-[11px] sm:text-[12px] text-text-secondary mt-0.5">{opt.desc}</div>
                       </div>
                     </div>
-                    <span className={`font-bold text-[14px] ${opt.price === 0 ? 'text-green-600' : isSelected ? 'text-primary' : 'text-text-primary'}`}>
+                    <span className={`font-bold text-[13px] sm:text-[14px] flex-shrink-0 ${opt.price === 0 ? 'text-green-600' : isSelected ? 'text-primary' : 'text-text-primary'}`}>
                       {opt.price === 0 ? 'GRATIS' : formatPrice(opt.price)}
                     </span>
                   </label>
@@ -823,19 +823,19 @@ export default function CheckoutPage() {
           </div>
 
           {/* 5. Metode Pembayaran */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-space-xl shadow-sm">
-            <h3 className="font-title-card text-[16px] font-bold text-text-primary mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
+          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-6 shadow-sm">
+            <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary mb-3 sm:mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] flex items-center justify-center font-bold">5</span>
               <span>Metode Pembayaran</span>
             </h3>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2.5 sm:gap-3">
               {PAYMENT_METHODS.map(m => {
                 const isSelected = selectedPayment.id === m.id;
                 return (
                   <label
                     key={m.id}
                     onClick={() => setSelectedPayment(m)}
-                    className={`flex items-center gap-3 p-4 rounded-lg bg-surface cursor-pointer transition-all ${
+                    className={`flex items-center gap-2.5 sm:gap-3 p-3.5 sm:p-4 rounded-xl bg-surface cursor-pointer transition-all ${
                       isSelected
                         ? 'border-2 border-primary bg-primary/[0.02]'
                         : 'border border-border-subtle hover:border-primary'
@@ -846,21 +846,21 @@ export default function CheckoutPage() {
                       name="payment"
                       checked={isSelected}
                       onChange={() => setSelectedPayment(m)}
-                      className="accent-primary"
+                      className="accent-primary flex-shrink-0"
                     />
-                    <span className={`material-symbols-outlined text-[20px] ${isSelected ? 'text-primary' : 'text-text-secondary'}`}>
+                    <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isSelected ? 'text-primary' : 'text-text-secondary'}`}>
                       {m.icon}
                     </span>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-[14px] text-text-primary">{m.title}</span>
+                        <span className="font-bold text-[13px] sm:text-[14px] text-text-primary">{m.title}</span>
                         {m.badge && (
                           <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
                             {m.badge}
                           </span>
                         )}
                       </div>
-                      <div className="text-[12px] text-text-secondary">{m.desc}</div>
+                      <div className="text-[11px] sm:text-[12px] text-text-secondary mt-0.5">{m.desc}</div>
                     </div>
                   </label>
                 );
@@ -870,9 +870,9 @@ export default function CheckoutPage() {
         </div>
 
         {/* Sidebar Summary & Action (4 cols) */}
-        <div className="lg:col-span-4 flex flex-col gap-space-md">
+        <div className="lg:col-span-4 flex flex-col gap-4 sm:gap-space-md">
           {/* Card 1: Promo Code */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-space-lg shadow-sm">
+          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-space-lg shadow-sm">
             <h3 className="font-title-card text-[14px] font-bold text-text-primary mb-3 flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-primary">local_offer</span>
               Kode Promo / Voucher
@@ -884,11 +884,11 @@ export default function CheckoutPage() {
                 value={promoInput}
                 onChange={e => setPromoInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleApplyPromo(); }}
-                className="flex-1 bg-surface border border-border-subtle rounded-lg px-3 py-2.5 font-label-sm text-[13px] text-text-primary focus:outline-none focus:border-primary uppercase"
+                className="flex-1 bg-surface border border-border-subtle rounded-lg px-3 py-2 text-[13px] text-text-primary focus:outline-none focus:border-primary uppercase"
               />
               <button
                 onClick={() => handleApplyPromo()}
-                className="bg-primary text-on-primary font-label-sm text-[13px] font-bold px-4 py-2.5 rounded-lg hover:bg-primary-container transition-colors shrink-0"
+                className="bg-primary text-on-primary font-label-sm text-[13px] font-bold px-4 py-2 rounded-lg hover:bg-primary-container transition-colors shrink-0"
               >
                 Pakai
               </button>
@@ -928,12 +928,12 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          {/* Card 2: Ringkasan Pembayaran (Sticky) */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-space-xl shadow-sm sticky top-4">
-            <h3 className="font-title-card text-[16px] font-bold text-text-primary mb-space-lg pb-2 border-b border-border-subtle">
+          {/* Card 2: Ringkasan Pembayaran (Sticky on desktop) */}
+          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-space-xl shadow-sm lg:sticky lg:top-4">
+            <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary mb-3 sm:mb-space-lg pb-2 border-b border-border-subtle">
               Ringkasan Pembayaran
             </h3>
-            <div className="flex flex-col gap-3 font-body-md text-[14px] text-text-secondary mb-space-lg">
+            <div className="flex flex-col gap-2.5 sm:gap-3 font-body-md text-[13px] sm:text-[14px] text-text-secondary mb-4 sm:mb-space-lg">
               <div className="flex justify-between">
                 <span>Subtotal ({itemCount} item)</span>
                 <span className="font-semibold text-text-primary">{formatPrice(subtotal)}</span>
@@ -961,8 +961,8 @@ export default function CheckoutPage() {
               )}
 
               <div className="border-t border-border-subtle pt-3 flex justify-between items-baseline">
-                <span className="font-bold text-text-primary text-[15px]">Grand Total</span>
-                <span className="font-price text-[20px] text-primary font-bold">
+                <span className="font-bold text-text-primary text-[14px] sm:text-[15px]">Grand Total</span>
+                <span className="font-price text-[18px] sm:text-[20px] text-primary font-bold">
                   {formatPrice(grandTotal)}
                 </span>
               </div>
@@ -970,7 +970,7 @@ export default function CheckoutPage() {
 
             <button
               onClick={handleProcessPayment}
-              className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm py-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-md font-semibold"
+              className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-sm text-[13px] sm:text-label-sm py-3.5 sm:py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md font-semibold active:scale-98"
             >
               <span>Proses & Bayar Sekarang</span>
               <span className="material-symbols-outlined text-[18px]">arrow_forward</span>

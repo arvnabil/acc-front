@@ -15,6 +15,7 @@ import {
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
+import { useToast } from "../context/ToastContext";
 import ProductCard from "../components/ProductCard";
 
 // ─── Review Section ────────────────────────────────────────────────────────
@@ -422,6 +423,7 @@ export default function ProductDetailPage() {
   const { addItem } = useCart();
   const { user, updateUser } = useAuth();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { showToast } = useToast();
 
   const [product, setProduct] = useState(null);
   const [variants, setVariants] = useState([]);
@@ -506,6 +508,14 @@ export default function ProductDetailPage() {
     addItem(product, quantity, selectedVariant);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+
+    showToast({
+      type: 'cart',
+      title: 'Berhasil Masuk Keranjang',
+      message: `${quantity}x ${product.name}`,
+      link: '/keranjang',
+      linkText: 'Lihat Keranjang',
+    });
   }
 
   function handleBuyNow() {
@@ -629,7 +639,18 @@ export default function ProductDetailPage() {
                   : "Garansi Resmi",
               }}
               isWishlisted={isInWishlist(`prod-${product.id}`)}
-              onToggleWishlist={() => toggleWishlist(`prod-${product.id}`)}
+              onToggleWishlist={() => {
+                const key = `prod-${product.id}`;
+                const willAdd = !isInWishlist(key);
+                toggleWishlist(key);
+                showToast({
+                  type: willAdd ? 'wishlist' : 'info',
+                  title: willAdd ? 'Ditambahkan ke Wishlist' : 'Dihapus dari Wishlist',
+                  message: product.name,
+                  link: '/wishlist',
+                  linkText: 'Lihat Wishlist',
+                });
+              }}
             />
 
             {/* ── Right: Product Info ───────────────────────────────── */}

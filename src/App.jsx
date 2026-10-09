@@ -22,6 +22,7 @@ import LacakPesananPage from './pages/LacakPesananPage';
 import BantuanPage from './pages/BantuanPage';
 import PwaBadge from './components/PwaBadge';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 
 function NotFound() {
   return (
@@ -41,8 +42,9 @@ function App() {
       <WishlistProvider>
         <CartProvider>
           <PwaBadge />
-        <Router>
-        <Routes>
+          <Router>
+            <ToastProvider>
+              <Routes>
           {/* Pages tanpa layout (full-screen) */}
           <Route path="/cari" element={<SearchPage />} />
           <Route path="/kategori" element={<CategoryMenuPage />} />
@@ -64,6 +66,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
+            </ToastProvider>
       </Router>
         </CartProvider>
       </WishlistProvider>

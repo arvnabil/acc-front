@@ -530,7 +530,7 @@ export default function Layout() {
   return (
     <div className="min-h-[100dvh] flex flex-col bg-page-background">
       <Header categories={categories} />
-      <main className="flex-1 w-full pt-[64px] lg:pt-[164px] pb-[60px] md:pb-0 relative">
+      <main className="flex-1 w-full pt-[64px] lg:pt-[164px] pb-[60px] md:pb-0 relative overflow-x-hidden">
         <div key={location.pathname} className="animate-fade">
           <Outlet />
         </div>
