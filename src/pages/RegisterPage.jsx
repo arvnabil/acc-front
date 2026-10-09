@@ -5,7 +5,6 @@ import { useToast } from '../context/ToastContext';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
-  const [company, setCompany] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,13 +18,13 @@ export default function RegisterPage() {
   function handleSubmit(e) {
     e.preventDefault();
     if (!agreed) {
-      showToast('Harap setujui syarat & ketentuan terlebih dahulu.', 'error');
+      showToast({ title: 'Harap setujui syarat & ketentuan terlebih dahulu.', type: 'error' });
       return;
     }
     setLoading(true);
     setTimeout(() => {
       login({ name, email });
-      showToast('Akun berhasil dibuat! Selamat bergabung 🎉', 'success');
+      showToast({ title: 'Akun berhasil dibuat! Selamat bergabung 🎉', type: 'success' });
       navigate('/akun');
       setLoading(false);
     }, 1300);
@@ -35,7 +34,7 @@ export default function RegisterPage() {
     setGoogleLoading(true);
     setTimeout(() => {
       login({ name: 'Demo Google User', email: 'demo.google@gmail.com', memberTier: 'MEMBER GOLD' });
-      showToast('Daftar dengan Google berhasil! 🎉', 'success');
+      showToast({ title: 'Daftar dengan Google berhasil! 🎉', type: 'success' });
       navigate('/akun');
       setGoogleLoading(false);
     }, 1400);
@@ -74,7 +73,7 @@ export default function RegisterPage() {
           position: absolute;
           width: 4px; height: 4px;
           border-radius: 50%;
-          background: rgba(0,229,255,0.7);
+          background: rgba(59,130,246,0.7);
           animation: drift 5.5s ease-in-out infinite;
         }
         .reg-particle:nth-child(1) { left: 12%; top: 72%; animation-delay: 0s; }
@@ -87,33 +86,27 @@ export default function RegisterPage() {
 
       <div className="min-h-screen flex items-stretch overflow-hidden">
 
-        {/* ═══════════════════════════════════════
-            LEFT PANEL — Illustration + Branding
-        ═══════════════════════════════════════ */}
+        {/* LEFT PANEL */}
         <div
           className="hidden lg:flex flex-col relative overflow-hidden"
           style={{
             width: '48%',
-            background: 'linear-gradient(145deg, #020b18 0%, #0a2040 30%, #0d5c6e 65%, #0f9488 100%)',
+            background: 'linear-gradient(145deg, #030712 0%, #1e3a8a 40%, #4338ca 100%)',
           }}
         >
-          {/* Glow overlays */}
           <div className="absolute inset-0 pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse at 40% 60%, rgba(0,229,255,0.12) 0%, transparent 65%)' }} />
+            style={{ background: 'radial-gradient(ellipse at 40% 60%, rgba(59,130,246,0.12) 0%, transparent 65%)' }} />
           <div className="absolute inset-0 pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse at 75% 20%, rgba(20,184,166,0.15) 0%, transparent 55%)' }} />
+            style={{ background: 'radial-gradient(ellipse at 75% 20%, rgba(124,58,237,0.15) 0%, transparent 55%)' }} />
 
-          {/* Spinning rings */}
-          <div className="reg-spin absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full border border-cyan-400/10 pointer-events-none" />
-          <div className="reg-spin absolute -bottom-32 -right-32 w-[400px] h-[400px] rounded-full border border-teal-400/10 pointer-events-none"
+          <div className="reg-spin absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full border border-blue-400/10 pointer-events-none" />
+          <div className="reg-spin absolute -bottom-32 -right-32 w-[400px] h-[400px] rounded-full border border-purple-400/10 pointer-events-none"
             style={{ animationDirection: 'reverse', animationDuration: '30s' }} />
 
-          {/* Particles */}
           <div className="absolute inset-0 pointer-events-none">
             {[...Array(6)].map((_, i) => <span key={i} className="reg-particle" />)}
           </div>
 
-          {/* Logo */}
           <div className="relative z-10 p-10 pt-12">
             <Link to="/">
               <img
@@ -124,33 +117,30 @@ export default function RegisterPage() {
             </Link>
           </div>
 
-          {/* Illustration */}
           <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 -mt-4">
             <div className="relative flex items-center justify-center mb-6">
-              {/* Pulse rings */}
               <div className="absolute w-72 h-72 rounded-full pointer-events-none"
-                style={{ background: 'radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 70%)', animation: 'pulse-ring 3s ease-out infinite' }} />
+                style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)', animation: 'pulse-ring 3s ease-out infinite' }} />
               <div className="absolute w-56 h-56 rounded-full pointer-events-none"
-                style={{ background: 'radial-gradient(circle, rgba(20,184,166,0.1) 0%, transparent 70%)', animation: 'pulse-ring 3s ease-out infinite 1s' }} />
+                style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%)', animation: 'pulse-ring 3s ease-out infinite 1s' }} />
               <img
                 src="/login-illustration.jpg"
                 alt="IT & AV Solutions"
                 className="reg-float relative z-10 w-full max-w-[380px] object-contain rounded-2xl"
-                style={{ filter: 'drop-shadow(0 20px 50px rgba(0,229,255,0.25)) drop-shadow(0 0 80px rgba(20,184,166,0.15))' }}
+                style={{ filter: 'drop-shadow(0 20px 50px rgba(59,130,246,0.25)) drop-shadow(0 0 80px rgba(124,58,237,0.15))' }}
               />
             </div>
 
             <div className="text-center max-w-[300px]">
               <h2 className="text-white text-xl font-bold mb-3 leading-tight tracking-tight">
                 Bergabung dengan<br />
-                <span style={{ color: '#00e5ff' }}>Komunitas IT Enterprise</span>
+                <span style={{ color: '#60a5fa' }}>Komunitas IT Enterprise</span>
               </h2>
               <p className="text-white/60 text-sm leading-relaxed">
                 Akses harga reseller eksklusif dan ribuan produk IT & AV terpercaya.
               </p>
             </div>
 
-            {/* Benefit pills */}
             <div className="flex flex-wrap justify-center gap-2 mt-5">
               {[
                 { icon: 'storefront',     label: 'Harga Reseller' },
@@ -159,7 +149,7 @@ export default function RegisterPage() {
                 { icon: 'support_agent',  label: 'Dedicated CS' },
               ].map((f, i) => (
                 <span key={f.label} className="reg-shim flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border"
-                  style={{ color: '#00e5ff', borderColor: 'rgba(0,229,255,0.3)', background: 'rgba(0,229,255,0.08)', animationDelay: `${i * 0.4}s` }}>
+                  style={{ color: '#60a5fa', borderColor: 'rgba(59,130,246,0.3)', background: 'rgba(59,130,246,0.08)', animationDelay: `${i * 0.4}s` }}>
                   <span className="material-symbols-outlined text-[13px]">{f.icon}</span>
                   {f.label}
                 </span>
@@ -167,7 +157,6 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Stats bar */}
           <div className="relative z-10 p-8 pb-12">
             <div className="grid grid-cols-3 gap-3">
               {[
@@ -176,8 +165,8 @@ export default function RegisterPage() {
                 { value: '10.000+', label: 'Pelanggan' },
               ].map(s => (
                 <div key={s.label} className="text-center rounded-xl p-3 border"
-                  style={{ background: 'rgba(0,229,255,0.06)', borderColor: 'rgba(0,229,255,0.15)' }}>
-                  <div className="font-bold text-lg leading-tight" style={{ color: '#00e5ff' }}>{s.value}</div>
+                  style={{ background: 'rgba(59,130,246,0.06)', borderColor: 'rgba(59,130,246,0.15)' }}>
+                  <div className="font-bold text-lg leading-tight" style={{ color: '#60a5fa' }}>{s.value}</div>
                   <div className="text-white/50 text-xs mt-0.5">{s.label}</div>
                 </div>
               ))}
@@ -185,26 +174,21 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════
-            RIGHT PANEL — Register Form
-        ═══════════════════════════════════════ */}
+        {/* RIGHT PANEL */}
         <div
           className="flex-1 flex flex-col items-center justify-center px-6 py-10 relative overflow-y-auto"
-          style={{ background: 'linear-gradient(160deg, #f0fafa 0%, #e8f4f8 50%, #f5f0ff 100%)' }}
+          style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 50%, #eff6ff 100%)' }}
         >
-          {/* Subtle bg accents */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-20 blur-3xl" style={{ background: '#0d9488' }} />
-            <div className="absolute -bottom-24 -left-16 w-64 h-64 rounded-full opacity-15 blur-3xl" style={{ background: '#7c3aed' }} />
+            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-[0.08] blur-3xl" style={{ background: '#3b82f6' }} />
+            <div className="absolute -bottom-24 -left-16 w-64 h-64 rounded-full opacity-[0.08] blur-3xl" style={{ background: '#8b5cf6' }} />
           </div>
 
           <div className="w-full max-w-[420px] relative z-10">
-            {/* Mobile logo */}
             <div className="flex justify-center mb-7 lg:hidden">
               <Link to="/"><img src="/accommerce-blue.png" alt="Accommerce.id" className="h-9 w-auto object-contain" /></Link>
             </div>
 
-            {/* Heading */}
             <div className="mb-7">
               <h1 className="text-2xl font-bold text-gray-900 mb-1.5 tracking-tight">
                 Buat Akun Baru ✨
@@ -214,7 +198,6 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Google Register */}
             <button
               type="button"
               onClick={handleGoogleRegister}
@@ -223,7 +206,7 @@ export default function RegisterPage() {
               style={{ borderColor: '#e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
             >
               {googleLoading ? (
-                <span className="w-5 h-5 border-2 border-gray-300 border-t-teal-500 rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
               ) : (
                 <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -235,60 +218,39 @@ export default function RegisterPage() {
               <span>{googleLoading ? 'Memproses...' : 'Daftar dengan Google'}</span>
             </button>
 
-            {/* Divider */}
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 h-px bg-gray-200" />
               <span className="text-xs text-gray-400 font-medium px-1">atau daftar dengan email</span>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              {/* Name + Company row */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Nama */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-700 tracking-wide uppercase">Nama</label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[17px] text-gray-400 pointer-events-none">person</span>
-                    <input
-                      required type="text" value={name}
-                      onChange={e => setName(e.target.value)}
-                      placeholder="Nama lengkap"
-                      className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all shadow-sm"
-                    />
-                  </div>
-                </div>
-                {/* Perusahaan */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-700 tracking-wide uppercase">Perusahaan</label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[17px] text-gray-400 pointer-events-none">business</span>
-                    <input
-                      type="text" value={company}
-                      onChange={e => setCompany(e.target.value)}
-                      placeholder="PT. / CV."
-                      className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all shadow-sm"
-                    />
-                  </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-gray-700 tracking-wide uppercase">Nama Lengkap</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[17px] text-gray-400 pointer-events-none">person</span>
+                  <input
+                    required type="text" value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="Nama lengkap"
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm"
+                  />
                 </div>
               </div>
 
-              {/* Email */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-700 tracking-wide uppercase">Email Perusahaan</label>
+                <label className="text-xs font-bold text-gray-700 tracking-wide uppercase">Email</label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-gray-400 pointer-events-none">mail</span>
                   <input
                     required type="email" value={email}
                     onChange={e => setEmail(e.target.value)}
-                    placeholder="nama@perusahaan.com"
-                    className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all shadow-sm"
+                    placeholder="nama@email.com"
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm"
                   />
                 </div>
               </div>
 
-              {/* Password */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-gray-700 tracking-wide uppercase">Kata Sandi</label>
                 <div className="relative">
@@ -297,20 +259,19 @@ export default function RegisterPage() {
                     required type={showPassword ? 'text' : 'password'} value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="Minimal 8 karakter"
-                    className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-11 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all shadow-sm"
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-11 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm"
                   />
                   <button type="button" onClick={() => setShowPassword(v => !v)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors">
                     <span className="material-symbols-outlined text-[18px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
                   </button>
                 </div>
-                {/* Password strength hint */}
                 <div className="flex gap-1 mt-1">
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className="flex-1 h-1 rounded-full transition-all duration-300"
                       style={{
                         background: password.length > i * 2
-                          ? (password.length >= 8 ? '#0d9488' : '#f59e0b')
+                          ? (password.length >= 8 ? '#16a34a' : '#f59e0b')
                           : '#e5e7eb'
                       }} />
                   ))}
@@ -320,34 +281,32 @@ export default function RegisterPage() {
                 </span>
               </div>
 
-              {/* Agreement */}
-              <label className="flex items-start gap-3 cursor-pointer group">
+              <label className="flex items-start gap-3 cursor-pointer group mt-2">
                 <div className="relative mt-0.5 flex-shrink-0">
                   <input
                     type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
                     className="sr-only"
                   />
-                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${agreed ? 'border-teal-500 bg-teal-500' : 'border-gray-300 bg-white group-hover:border-teal-400'}`}>
+                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${agreed ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white group-hover:border-blue-500'}`}>
                     {agreed && <span className="material-symbols-outlined text-white text-[14px] font-bold">check</span>}
                   </div>
                 </div>
                 <span className="text-xs text-gray-500 leading-relaxed">
                   Dengan mendaftar, saya menyetujui{' '}
-                  <a href="#/" className="font-semibold" style={{ color: '#0d9488' }}>Syarat & Ketentuan</a>{' '}
+                  <a href="#/" className="font-semibold" style={{ color: '#2563eb' }}>Syarat & Ketentuan</a>{' '}
                   dan{' '}
-                  <a href="#/" className="font-semibold" style={{ color: '#0d9488' }}>Kebijakan Privasi</a>{' '}
+                  <a href="#/" className="font-semibold" style={{ color: '#2563eb' }}>Kebijakan Privasi</a>{' '}
                   Accommerce.
                 </span>
               </label>
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading || googleLoading || !agreed}
-                className="w-full relative overflow-hidden py-3.5 px-4 rounded-xl text-sm font-bold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full relative overflow-hidden py-3.5 px-4 rounded-xl text-sm font-bold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                 style={{
-                  background: 'linear-gradient(135deg, #0f9488 0%, #0d7377 50%, #0a5c6e 100%)',
-                  boxShadow: '0 4px 20px rgba(13, 115, 119, 0.45)',
+                  background: 'linear-gradient(135deg, #1a56db 0%, #2563eb 50%, #7c3aed 100%)',
+                  boxShadow: '0 4px 20px rgba(37, 99, 235, 0.45)',
                 }}
               >
                 <span className="relative flex items-center justify-center gap-2">
@@ -366,15 +325,13 @@ export default function RegisterPage() {
               </button>
             </form>
 
-            {/* Login link */}
             <p className="text-center text-sm text-gray-500 mt-5">
               Sudah punya akun?{' '}
-              <Link to="/login" className="font-bold hover:underline" style={{ color: '#0d9488' }}>
+              <Link to="/login" className="font-bold hover:underline" style={{ color: '#2563eb' }}>
                 Masuk di sini
               </Link>
             </p>
 
-            {/* Security badge */}
             <div className="flex items-center justify-center gap-2 mt-6 text-xs text-gray-400">
               <span className="material-symbols-outlined text-[14px] text-green-500">shield</span>
               <span>Data Anda aman & terenkripsi SSL 256-bit</span>
