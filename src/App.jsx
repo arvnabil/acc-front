@@ -49,6 +49,8 @@ function App() {
           {/* Pages tanpa layout (full-screen) */}
           <Route path="/cari" element={<SearchPage />} />
           <Route path="/kategori" element={<CategoryMenuPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
           {/* Pages dengan layout */}
           <Route element={<Layout />}>
@@ -61,8 +63,6 @@ function App() {
             <Route path="/minta-penawaran" element={<RfqPage />} />
             <Route path="/lacak-pesanan" element={<LacakPesananPage />} />
             <Route path="/bantuan" element={<BantuanPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
             <Route path="/akun" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Route>

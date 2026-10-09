@@ -20,7 +20,6 @@ export default function LoginPage() {
   function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    // Simulate async login
     setTimeout(() => {
       login({ name: 'Pengguna Demo', email });
       showToast('Login berhasil! Selamat datang 👋', 'success');
@@ -44,52 +43,119 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-page-background flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Animated background blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="min-h-screen bg-page-background flex items-stretch relative overflow-hidden">
+      {/* === LEFT PANEL — Illustration === */}
+      <div
+        className="hidden lg:flex flex-col justify-between relative overflow-hidden"
+        style={{
+          width: '52%',
+          background: 'linear-gradient(145deg, #0f1f6e 0%, #1a56db 40%, #7c3aed 100%)',
+        }}
+      >
+        {/* Subtle radial overlay */}
         <div
-          className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-10 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #1a56db, transparent)' }}
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at 30% 50%, rgba(255,255,255,0.06) 0%, transparent 70%)',
+          }}
+        />
+
+        {/* Top branding */}
+        <div className="relative z-10 p-10">
+          <Link to="/">
+            <img
+              src="/accommerce-white.png"
+              alt="Accommerce.id"
+              className="h-9 w-auto object-contain"
+              onError={e => { e.target.src = '/accommerce-blue.png'; e.target.style.filter = 'brightness(0) invert(1)'; }}
+            />
+          </Link>
+        </div>
+
+        {/* Center illustration */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-10 -mt-8">
+          <img
+            src="/login-illustration.jpg"
+            alt="IT & AV Solutions"
+            className="w-full max-w-[420px] object-contain drop-shadow-2xl"
+            style={{ filter: 'drop-shadow(0 20px 60px rgba(0,0,0,0.5))' }}
+          />
+          <div className="text-center mt-6 max-w-[340px]">
+            <h2 className="text-white text-2xl font-bold mb-3 leading-tight">
+              Solusi IT &amp; Audio Visual<br />untuk Bisnis Anda
+            </h2>
+            <p className="text-white/70 text-sm leading-relaxed">
+              Dapatkan akses ke ribuan produk enterprise dari brand terpercaya dunia dengan harga reseller terbaik.
+            </p>
+          </div>
+
+          {/* Feature pills */}
+          <div className="flex flex-wrap justify-center gap-2 mt-6">
+            {['Garansi Resmi', 'Produk Original', 'Pengiriman Cepat', 'Support 24 Jam'].map(f => (
+              <span
+                key={f}
+                className="text-xs font-semibold text-white/90 px-3 py-1.5 rounded-full border border-white/20"
+                style={{ background: 'rgba(255,255,255,0.1)' }}
+              >
+                ✓ {f}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom quote */}
+        <div className="relative z-10 p-10 pb-12">
+          <blockquote className="border-l-2 border-white/30 pl-4">
+            <p className="text-white/80 text-sm italic leading-relaxed">
+              "Platform terpercaya untuk kebutuhan IT &amp; AV perusahaan kami."
+            </p>
+            <cite className="text-white/50 text-xs mt-2 block not-italic">— Tim Procurement, PT. Solusi Digital</cite>
+          </blockquote>
+        </div>
+
+        {/* Decorative circles */}
+        <div
+          className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full opacity-10 pointer-events-none"
+          style={{ background: 'white' }}
         />
         <div
-          className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full opacity-10 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #7c3aed, transparent)' }}
-        />
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full opacity-5 blur-3xl"
-          style={{ background: 'radial-gradient(ellipse, #0ea5e9, transparent)' }}
+          className="absolute -top-16 -right-16 w-56 h-56 rounded-full opacity-10 pointer-events-none"
+          style={{ background: 'white' }}
         />
       </div>
 
-      <div className="w-full max-w-[440px] relative z-10">
-        {/* Card */}
-        <div
-          className="rounded-2xl p-8 shadow-2xl border border-white/10"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            boxShadow: '0 25px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1)',
-          }}
-        >
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
+      {/* === RIGHT PANEL — Form === */}
+      <div
+        className="flex-1 flex flex-col items-center justify-center px-6 py-12 lg:py-8 relative"
+        style={{ minWidth: 0 }}
+      >
+        {/* BG blobs for mobile/right side */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div
+            className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-[0.06] blur-3xl"
+            style={{ background: '#1a56db' }}
+          />
+          <div
+            className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full opacity-[0.06] blur-3xl"
+            style={{ background: '#7c3aed' }}
+          />
+        </div>
+
+        <div className="w-full max-w-[400px] relative z-10">
+          {/* Mobile logo (hidden on desktop since left panel has it) */}
+          <div className="flex justify-center mb-8 lg:hidden">
             <Link to="/">
-              <img
-                src="/accommerce-blue.png"
-                alt="Accommerce.id"
-                className="h-10 w-auto object-contain"
-              />
+              <img src="/accommerce-blue.png" alt="Accommerce.id" className="h-9 w-auto object-contain" />
             </Link>
           </div>
 
           {/* Heading */}
-          <div className="text-center mb-8">
+          <div className="mb-8">
             <h1 className="text-2xl font-bold text-text-primary mb-2 tracking-tight">
-              Selamat Datang Kembali
+              Selamat Datang Kembali 👋
             </h1>
             <p className="text-sm text-text-secondary">
-              Masuk untuk melanjutkan belanja Anda
+              Masuk untuk melanjutkan belanja enterprise Anda
             </p>
           </div>
 
@@ -98,7 +164,7 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={googleLoading || loading}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-border-subtle bg-white/5 hover:bg-white/10 text-text-primary text-sm font-semibold transition-all duration-200 hover:border-primary/40 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed mb-4 group"
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-border-subtle bg-white/5 hover:bg-white/10 text-text-primary text-sm font-semibold transition-all duration-200 hover:border-primary/40 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed mb-4"
           >
             {googleLoading ? (
               <span className="w-5 h-5 border-2 border-text-secondary border-t-primary rounded-full animate-spin" />
@@ -116,7 +182,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 h-px bg-border-subtle" />
-            <span className="text-xs text-text-secondary font-medium px-1">atau masuk dengan email</span>
+            <span className="text-xs text-text-secondary font-medium px-1">atau dengan email</span>
             <div className="flex-1 h-px bg-border-subtle" />
           </div>
 
@@ -124,9 +190,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {/* Email */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-text-primary tracking-wide uppercase">
-                Email
-              </label>
+              <label className="text-xs font-bold text-text-primary tracking-wide uppercase">Email</label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">
                   mail
@@ -145,12 +209,8 @@ export default function LoginPage() {
             {/* Password */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-text-primary tracking-wide uppercase">
-                  Kata Sandi
-                </label>
-                <a href="#/" className="text-xs text-primary hover:underline font-medium">
-                  Lupa kata sandi?
-                </a>
+                <label className="text-xs font-bold text-text-primary tracking-wide uppercase">Kata Sandi</label>
+                <a href="#/" className="text-xs text-primary hover:underline font-medium">Lupa kata sandi?</a>
               </div>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">
@@ -182,16 +242,10 @@ export default function LoginPage() {
               disabled={loading || googleLoading}
               className="w-full relative overflow-hidden py-3.5 px-4 rounded-xl text-sm font-bold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed mt-1"
               style={{
-                background: loading
-                  ? 'linear-gradient(135deg, #1a56db, #7c3aed)'
-                  : 'linear-gradient(135deg, #1a56db 0%, #2563eb 50%, #7c3aed 100%)',
+                background: 'linear-gradient(135deg, #1a56db 0%, #2563eb 50%, #7c3aed 100%)',
                 boxShadow: '0 4px 20px rgba(37, 99, 235, 0.4)',
               }}
             >
-              <span
-                className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-200"
-                style={{ background: 'linear-gradient(135deg, #1e40af, #6d28d9)' }}
-              />
               <span className="relative flex items-center justify-center gap-2">
                 {loading ? (
                   <>
@@ -215,12 +269,12 @@ export default function LoginPage() {
               Daftar gratis
             </Link>
           </p>
-        </div>
 
-        {/* Security badge */}
-        <div className="flex items-center justify-center gap-2 mt-5 text-xs text-text-secondary">
-          <span className="material-symbols-outlined text-[14px] text-green-400">shield</span>
-          <span>Koneksi aman dengan enkripsi SSL 256-bit</span>
+          {/* Security badge */}
+          <div className="flex items-center justify-center gap-2 mt-8 text-xs text-text-secondary">
+            <span className="material-symbols-outlined text-[14px] text-green-400">shield</span>
+            <span>Koneksi aman dengan enkripsi SSL 256-bit</span>
+          </div>
         </div>
       </div>
     </div>

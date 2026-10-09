@@ -781,205 +781,209 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* 4. Pilih Ekspedisi & Layanan Pengiriman */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-6 shadow-sm">
-            <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary mb-3 sm:mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] flex items-center justify-center font-bold">4</span>
-              <span>Pilih Ekspedisi & Layanan Pengiriman</span>
-            </h3>
-            <div className="flex flex-col gap-2.5 sm:gap-3">
-              {SHIPPING_OPTIONS.map(opt => {
-                const isSelected = selectedShipping.id === opt.id;
-                return (
-                  <label
-                    key={opt.id}
-                    onClick={() => setSelectedShipping(opt)}
-                    className={`flex items-start sm:items-center justify-between gap-2.5 sm:gap-3 p-3.5 sm:p-4 rounded-xl bg-surface cursor-pointer transition-all ${
-                      isSelected
-                        ? 'border-2 border-primary bg-primary/[0.02]'
-                        : 'border border-border-subtle hover:border-primary'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
-                      <input
-                        type="radio"
-                        name="shipping"
-                        checked={isSelected}
-                        onChange={() => setSelectedShipping(opt)}
-                        className="text-primary accent-primary mt-0.5 sm:mt-0 flex-shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <div className="font-bold text-[13px] sm:text-[14px] text-text-primary leading-tight">{opt.title}</div>
-                        <div className="text-[11px] sm:text-[12px] text-text-secondary mt-0.5">{opt.desc}</div>
-                      </div>
-                    </div>
-                    <span className={`font-bold text-[13px] sm:text-[14px] flex-shrink-0 ${opt.price === 0 ? 'text-green-600' : isSelected ? 'text-primary' : 'text-text-primary'}`}>
-                      {opt.price === 0 ? 'GRATIS' : formatPrice(opt.price)}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 5. Metode Pembayaran */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-6 shadow-sm">
-            <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary mb-3 sm:mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] flex items-center justify-center font-bold">5</span>
-              <span>Metode Pembayaran</span>
-            </h3>
-            <div className="flex flex-col gap-2.5 sm:gap-3">
-              {PAYMENT_METHODS.map(m => {
-                const isSelected = selectedPayment.id === m.id;
-                return (
-                  <label
-                    key={m.id}
-                    onClick={() => setSelectedPayment(m)}
-                    className={`flex items-center gap-2.5 sm:gap-3 p-3.5 sm:p-4 rounded-xl bg-surface cursor-pointer transition-all ${
-                      isSelected
-                        ? 'border-2 border-primary bg-primary/[0.02]'
-                        : 'border border-border-subtle hover:border-primary'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={isSelected}
-                      onChange={() => setSelectedPayment(m)}
-                      className="accent-primary flex-shrink-0"
-                    />
-                    <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isSelected ? 'text-primary' : 'text-text-secondary'}`}>
-                      {m.icon}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-[13px] sm:text-[14px] text-text-primary">{m.title}</span>
-                        {m.badge && (
-                          <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                            {m.badge}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-[11px] sm:text-[12px] text-text-secondary mt-0.5">{m.desc}</div>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
         </div>
 
-        {/* Sidebar Summary & Action (4 cols) */}
-        <div className="lg:col-span-4 flex flex-col gap-4 sm:gap-space-md">
-          {/* Card 1: Promo Code */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-space-lg shadow-sm">
-            <h3 className="font-title-card text-[14px] font-bold text-text-primary mb-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-primary">local_offer</span>
-              Kode Promo / Voucher
-            </h3>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Kode promo..."
-                value={promoInput}
-                onChange={e => setPromoInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleApplyPromo(); }}
-                className="flex-1 bg-surface border border-border-subtle rounded-lg px-3 py-2 text-[13px] text-text-primary focus:outline-none focus:border-primary uppercase"
-              />
-              <button
-                onClick={() => handleApplyPromo()}
-                className="bg-primary text-on-primary font-label-sm text-[13px] font-bold px-4 py-2 rounded-lg hover:bg-primary-container transition-colors shrink-0"
-              >
-                Pakai
-              </button>
+        {/* Sidebar (4 cols) — Sticky: Ekspedisi, Pembayaran, Promo, Ringkasan */}
+        <div className="lg:col-span-4">
+          <div className="flex flex-col gap-4 sm:gap-space-md lg:sticky lg:top-4">
+
+            {/* Sidebar Card: Pilih Ekspedisi */}
+            <div className="bg-card-bg border border-border-subtle rounded-xl p-4 shadow-sm">
+              <h3 className="font-title-card text-[14px] font-bold text-text-primary mb-3 pb-2 border-b border-border-subtle flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-primary">local_shipping</span>
+                Ekspedisi & Pengiriman
+              </h3>
+              <div className="flex flex-col gap-2">
+                {SHIPPING_OPTIONS.map(opt => {
+                  const isSelected = selectedShipping.id === opt.id;
+                  return (
+                    <label
+                      key={opt.id}
+                      onClick={() => setSelectedShipping(opt)}
+                      className={`flex items-center justify-between gap-2 p-3 rounded-xl bg-surface cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-2 border-primary bg-primary/[0.02]'
+                          : 'border border-border-subtle hover:border-primary'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <input
+                          type="radio"
+                          name="shipping"
+                          checked={isSelected}
+                          onChange={() => setSelectedShipping(opt)}
+                          className="accent-primary flex-shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <div className="font-bold text-[12px] text-text-primary leading-tight truncate">{opt.title}</div>
+                          <div className="text-[11px] text-text-secondary mt-0.5 leading-tight">{opt.desc}</div>
+                        </div>
+                      </div>
+                      <span className={`font-bold text-[12px] flex-shrink-0 ml-1 ${opt.price === 0 ? 'text-green-600' : isSelected ? 'text-primary' : 'text-text-primary'}`}>
+                        {opt.price === 0 ? 'GRATIS' : formatPrice(opt.price)}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
 
-            {promoMessage && (
-              <div className={`mt-2 text-[12px] font-medium ${promoMessage.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
-                {promoMessage.text}
+            {/* Sidebar Card: Metode Pembayaran */}
+            <div className="bg-card-bg border border-border-subtle rounded-xl p-4 shadow-sm">
+              <h3 className="font-title-card text-[14px] font-bold text-text-primary mb-3 pb-2 border-b border-border-subtle flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-primary">payments</span>
+                Metode Pembayaran
+              </h3>
+              <div className="flex flex-col gap-2">
+                {PAYMENT_METHODS.map(m => {
+                  const isSelected = selectedPayment.id === m.id;
+                  return (
+                    <label
+                      key={m.id}
+                      onClick={() => setSelectedPayment(m)}
+                      className={`flex items-center gap-2 p-3 rounded-xl bg-surface cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-2 border-primary bg-primary/[0.02]'
+                          : 'border border-border-subtle hover:border-primary'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        checked={isSelected}
+                        onChange={() => setSelectedPayment(m)}
+                        className="accent-primary flex-shrink-0"
+                      />
+                      <span className={`material-symbols-outlined text-[18px] flex-shrink-0 ${isSelected ? 'text-primary' : 'text-text-secondary'}`}>
+                        {m.icon}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-[12px] text-text-primary leading-tight">{m.title}</span>
+                          {m.badge && (
+                            <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full">
+                              {m.badge}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-text-secondary mt-0.5 leading-tight line-clamp-1">{m.desc}</div>
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
-            )}
+            </div>
 
-            {/* Chips with dashed border */}
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {['SAVE10', 'ACCOMM25', 'TECH100K', 'NEWMEMBER'].map(chip => (
+            {/* Sidebar Card: Promo Code */}
+            <div className="bg-card-bg border border-border-subtle rounded-xl p-4 shadow-sm">
+              <h3 className="font-title-card text-[14px] font-bold text-text-primary mb-3 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-primary">local_offer</span>
+                Kode Promo / Voucher
+              </h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Kode promo..."
+                  value={promoInput}
+                  onChange={e => setPromoInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleApplyPromo(); }}
+                  className="flex-1 bg-surface border border-border-subtle rounded-lg px-3 py-2 text-[13px] text-text-primary focus:outline-none focus:border-primary uppercase"
+                />
                 <button
-                  key={chip}
-                  onClick={() => {
-                    setPromoInput(chip);
-                    handleApplyPromo(chip);
-                  }}
-                  className={`text-[11px] border border-dashed px-2 py-1 rounded-full transition-colors ${
-                    appliedPromo?.code === chip
-                      ? 'border-primary bg-primary text-on-primary font-bold'
-                      : 'border-primary text-primary hover:bg-primary hover:text-on-primary'
-                  }`}
+                  onClick={() => handleApplyPromo()}
+                  className="bg-primary text-on-primary font-label-sm text-[13px] font-bold px-4 py-2 rounded-lg hover:bg-primary-container transition-colors shrink-0"
                 >
-                  {chip}
+                  Pakai
                 </button>
-              ))}
-            </div>
-
-            {appliedPromo && (
-              <div className="mt-2.5 pt-2 border-t border-border-subtle flex items-center justify-between text-[11px] text-text-secondary">
-                <span>Promo aktif: <strong className="text-primary">{appliedPromo.code}</strong></span>
-                <button onClick={() => { setAppliedPromo(null); setPromoInput(''); setPromoMessage(null); }} className="text-red-500 hover:underline">Hapus</button>
-              </div>
-            )}
-          </div>
-
-          {/* Card 2: Ringkasan Pembayaran (Sticky on desktop) */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-space-xl shadow-sm lg:sticky lg:top-4">
-            <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary mb-3 sm:mb-space-lg pb-2 border-b border-border-subtle">
-              Ringkasan Pembayaran
-            </h3>
-            <div className="flex flex-col gap-2.5 sm:gap-3 font-body-md text-[13px] sm:text-[14px] text-text-secondary mb-4 sm:mb-space-lg">
-              <div className="flex justify-between">
-                <span>Subtotal ({itemCount} item)</span>
-                <span className="font-semibold text-text-primary">{formatPrice(subtotal)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>PPN 11%</span>
-                <span className="font-semibold text-text-primary">{formatPrice(ppn)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Ongkos Kirim</span>
-                <span className={`font-semibold ${shippingCost === 0 ? 'text-green-600' : 'text-text-primary'}`}>
-                  {shippingCost === 0 ? 'GRATIS' : formatPrice(shippingCost)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Biaya Layanan</span>
-                <span className="font-semibold text-text-primary">{formatPrice(adminFee)}</span>
               </div>
 
-              {discountAmount > 0 && (
-                <div className="flex justify-between text-green-600 font-bold">
-                  <span>Diskon Promo ({appliedPromo?.code})</span>
-                  <span>- {formatPrice(discountAmount)}</span>
+              {promoMessage && (
+                <div className={`mt-2 text-[12px] font-medium ${promoMessage.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                  {promoMessage.text}
                 </div>
               )}
 
-              <div className="border-t border-border-subtle pt-3 flex justify-between items-baseline">
-                <span className="font-bold text-text-primary text-[14px] sm:text-[15px]">Grand Total</span>
-                <span className="font-price text-[18px] sm:text-[20px] text-primary font-bold">
-                  {formatPrice(grandTotal)}
-                </span>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {['SAVE10', 'ACCOMM25', 'TECH100K', 'NEWMEMBER'].map(chip => (
+                  <button
+                    key={chip}
+                    onClick={() => {
+                      setPromoInput(chip);
+                      handleApplyPromo(chip);
+                    }}
+                    className={`text-[11px] border border-dashed px-2 py-1 rounded-full transition-colors ${
+                      appliedPromo?.code === chip
+                        ? 'border-primary bg-primary text-on-primary font-bold'
+                        : 'border-primary text-primary hover:bg-primary hover:text-on-primary'
+                    }`}
+                  >
+                    {chip}
+                  </button>
+                ))}
               </div>
+
+              {appliedPromo && (
+                <div className="mt-2.5 pt-2 border-t border-border-subtle flex items-center justify-between text-[11px] text-text-secondary">
+                  <span>Promo aktif: <strong className="text-primary">{appliedPromo.code}</strong></span>
+                  <button onClick={() => { setAppliedPromo(null); setPromoInput(''); setPromoMessage(null); }} className="text-red-500 hover:underline">Hapus</button>
+                </div>
+              )}
             </div>
 
-            <button
-              onClick={handleProcessPayment}
-              className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-sm text-[13px] sm:text-label-sm py-3.5 sm:py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md font-semibold active:scale-98"
-            >
-              <span>Proses & Bayar Sekarang</span>
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </button>
+            {/* Sidebar Card: Ringkasan Pembayaran */}
+            <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-space-xl shadow-sm">
+              <h3 className="font-title-card text-[15px] font-bold text-text-primary mb-3 pb-2 border-b border-border-subtle">
+                Ringkasan Pembayaran
+              </h3>
+              <div className="flex flex-col gap-2.5 text-[13px] text-text-secondary mb-4">
+                <div className="flex justify-between">
+                  <span>Subtotal ({itemCount} item)</span>
+                  <span className="font-semibold text-text-primary">{formatPrice(subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>PPN 11%</span>
+                  <span className="font-semibold text-text-primary">{formatPrice(ppn)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Ongkos Kirim</span>
+                  <span className={`font-semibold ${shippingCost === 0 ? 'text-green-600' : 'text-text-primary'}`}>
+                    {shippingCost === 0 ? 'GRATIS' : formatPrice(shippingCost)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Biaya Layanan</span>
+                  <span className="font-semibold text-text-primary">{formatPrice(adminFee)}</span>
+                </div>
 
-            <p className="text-[11px] text-text-secondary text-center mt-3 flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">lock</span>
-              <span>Transaksi aman & terenkripsi SSL</span>
-            </p>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-green-600 font-bold">
+                    <span>Diskon ({appliedPromo?.code})</span>
+                    <span>- {formatPrice(discountAmount)}</span>
+                  </div>
+                )}
+
+                <div className="border-t border-border-subtle pt-3 flex justify-between items-baseline">
+                  <span className="font-bold text-text-primary text-[14px]">Grand Total</span>
+                  <span className="font-price text-[18px] sm:text-[20px] text-primary font-bold">
+                    {formatPrice(grandTotal)}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleProcessPayment}
+                className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-sm text-[13px] sm:text-label-sm py-3.5 sm:py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md font-semibold active:scale-98"
+              >
+                <span>Proses & Bayar Sekarang</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </button>
+
+              <p className="text-[11px] text-text-secondary text-center mt-3 flex items-center justify-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">lock</span>
+                <span>Transaksi aman & terenkripsi SSL</span>
+              </p>
+            </div>
+
           </div>
         </div>
       </div>
