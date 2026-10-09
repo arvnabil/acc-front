@@ -45,6 +45,13 @@ const SHIPPING_OPTIONS = [
 
 const PAYMENT_METHODS = [
   {
+    id: 'qris',
+    title: 'QRIS (Semua Bank & E-Wallet)',
+    desc: 'BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay — Scan & Bayar Instan',
+    icon: 'qr_code_scanner',
+    badge: 'Instan & Bebas Biaya',
+  },
+  {
     id: 'va',
     title: 'Transfer Bank / Virtual Account',
     desc: 'BCA · Mandiri · BNI · BRI · BSI — verifikasi otomatis',
@@ -287,9 +294,11 @@ export default function CheckoutPage() {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 3: PAYMENT / VIRTUAL ACCOUNT VIEW
+  // STEP 3: PAYMENT (QRIS / VIRTUAL ACCOUNT VIEW)
   // ─────────────────────────────────────────────────────────────────────────────
   if (currentStep === 'payment') {
+    const isQris = selectedPayment.id === 'qris';
+
     return (
       <div className="max-w-[900px] mx-auto px-gutter lg:px-margin py-space-2xl w-full">
         {/* Step Indicator */}
@@ -303,129 +312,276 @@ export default function CheckoutPage() {
           <div className="flex items-center gap-1.5"><div className="w-7 h-7 rounded-full bg-surface border-2 border-border-subtle flex items-center justify-center text-[12px] font-bold text-text-secondary">4</div><span className="text-[12px] text-text-secondary hidden sm:inline">Selesai</span></div>
         </div>
 
-        <div className="bg-card-bg border border-border-subtle rounded-xl p-space-2xl shadow-sm text-center">
-          <div className="w-20 h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-space-md">
-            <span className="material-symbols-outlined text-[40px]">account_balance</span>
-          </div>
-          <span className="inline-block bg-amber-100 text-amber-700 font-sku text-[11px] font-bold px-3 py-1 rounded-full mb-2">
-            Menunggu Pembayaran
-          </span>
-          <span className="block font-sku text-[11px] text-text-secondary">Nomor Invoice: {orderNumber}</span>
-          <h1 className="font-headline-hero-mobile lg:font-headline-section text-text-primary mt-1 mb-2 font-bold">
-            Selesaikan Pembayaran Anda
-          </h1>
-          <p className="font-body-md text-[14px] text-text-secondary max-w-[500px] mx-auto mb-space-xl">
-            Transfer ke Virtual Account sebelum batas waktu. Pembayaran otomatis terverifikasi.
-          </p>
+        {/* Payment Method Switcher Tabs on Step 3 */}
+        <div className="flex max-w-[420px] mx-auto mb-6 bg-surface p-1 rounded-xl border border-border-subtle">
+          <button
+            onClick={() => setSelectedPayment(PAYMENT_METHODS.find(p => p.id === 'qris') || PAYMENT_METHODS[0])}
+            className={`flex-1 py-2 px-3 rounded-lg text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all ${
+              isQris
+                ? 'bg-primary text-white shadow-sm'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+            <span>QRIS</span>
+          </button>
+          <button
+            onClick={() => setSelectedPayment(PAYMENT_METHODS.find(p => p.id === 'va') || PAYMENT_METHODS[1])}
+            className={`flex-1 py-2 px-3 rounded-lg text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all ${
+              !isQris
+                ? 'bg-primary text-white shadow-sm'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[18px]">account_balance</span>
+            <span>Virtual Account</span>
+          </button>
+        </div>
 
-          {/* Countdown timer */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 max-w-[420px] mx-auto mb-space-xl">
-            <div className="text-[13px] text-amber-700 font-semibold mb-2 flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-[16px]">schedule</span>
-              Batas Waktu Pembayaran
-            </div>
-            <div className="text-[28px] font-bold font-mono text-amber-700">23:59:00</div>
-            <div className="text-[11px] text-amber-600 mt-1">Pesanan otomatis dibatalkan setelah habis waktu</div>
-          </div>
+        <div className="bg-card-bg border border-border-subtle rounded-xl p-space-xl sm:p-space-2xl shadow-sm text-center">
+          {isQris ? (
+            /* QRIS PAYMENT VIEW */
+            <>
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-space-md">
+                <span className="material-symbols-outlined text-[36px] sm:text-[40px]">qr_code_scanner</span>
+              </div>
+              <span className="inline-block bg-emerald-100 text-emerald-800 font-sku text-[11px] font-bold px-3 py-1 rounded-full mb-2">
+                Menunggu Pembayaran QRIS
+              </span>
+              <span className="block font-sku text-[11px] text-text-secondary">Nomor Invoice: {orderNumber}</span>
+              <h1 className="font-headline-hero-mobile lg:font-headline-section text-text-primary mt-1 mb-2 font-bold">
+                Scan QRIS untuk Pembayaran
+              </h1>
+              <p className="font-body-md text-[13px] sm:text-[14px] text-text-secondary max-w-[520px] mx-auto mb-space-xl">
+                Buka aplikasi Mobile Banking atau E-Wallet apa saja (BCA, Livin', BRImo, BNI, GoPay, OVO, DANA, ShopeePay), lalu scan kode QR di bawah ini:
+              </p>
 
-          {/* VA Detail Card */}
-          <div className="bg-surface rounded-xl p-space-xl max-w-[460px] mx-auto mb-space-xl text-left border border-border-subtle">
-            {/* Bank Selector Tabs */}
-            <div className="flex gap-2 mb-4">
-              {BANKS.map(bank => (
+              {/* Countdown timer */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 max-w-[420px] mx-auto mb-space-xl">
+                <div className="text-[12px] sm:text-[13px] text-amber-800 font-semibold mb-1 flex items-center justify-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px]">schedule</span>
+                  Batas Waktu Scan QRIS
+                </div>
+                <div className="text-[26px] sm:text-[28px] font-bold font-mono text-amber-700">14:59</div>
+                <div className="text-[11px] text-amber-600">Kode QR otomatis diperbarui setelah batas waktu habis</div>
+              </div>
+
+              {/* QRIS Card with Image */}
+              <div className="bg-surface rounded-2xl p-4 sm:p-6 max-w-[420px] mx-auto mb-space-xl text-center border border-border-subtle shadow-sm">
+                <div className="bg-white rounded-xl p-3 sm:p-4 border border-border-subtle shadow-sm inline-block mx-auto mb-3">
+                  <img
+                    src="/method/qris-accommerce.png"
+                    alt="QRIS Accommerce by ACTiV"
+                    className="w-full max-w-[280px] sm:max-w-[320px] h-auto object-contain mx-auto rounded-lg"
+                  />
+                </div>
+                <div className="font-bold text-[14px] sm:text-[15px] text-text-primary">Accommerce by ACTiV</div>
+                <div className="font-mono text-[11px] text-text-secondary mt-0.5">NMID: ID10200216800 · Standar Pembayaran Nasional</div>
+
+                <div className="mt-4 pt-3.5 border-t border-border-subtle flex justify-between items-center text-left">
+                  <span className="font-sku text-[12px] text-text-secondary">Total Tagihan</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-primary text-[16px] sm:text-[17px]">{formatPrice(grandTotal)}</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard?.writeText(String(grandTotal));
+                        setCopiedAmount(true);
+                        setTimeout(() => setCopiedAmount(false), 2000);
+                      }}
+                      className="text-[11px] text-primary hover:underline font-semibold"
+                    >
+                      {copiedAmount ? '✓ Tersalin' : 'Salin'}
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-3 bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 text-[11px] text-emerald-800 text-left flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] flex-shrink-0 text-emerald-600">verified</span>
+                  <span>Verifikasi otomatis dalam hitungan detik setelah pembayaran berhasil.</span>
+                </div>
+              </div>
+
+              {/* Cara Bayar QRIS */}
+              <div className="max-w-[460px] mx-auto mb-space-xl text-left bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-5">
+                <h3 className="font-title-card text-[14px] font-bold text-text-primary mb-3 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-primary">help</span>
+                  Panduan Pembayaran QRIS:
+                </h3>
+                <ol className="flex flex-col gap-2.5 text-[12px] sm:text-[13px] text-text-secondary">
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">1</span>
+                    <span>Buka aplikasi m-Banking (BCA, Livin', BRImo, BNI, dll) atau E-Wallet (GoPay, OVO, DANA, ShopeePay).</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">2</span>
+                    <span>Pilih menu <strong>QRIS</strong> atau ikon <strong>Scan QR</strong>.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">3</span>
+                    <span>Arahkan kamera ke gambar QRIS di atas (atau simpan gambar lalu import dari galeri).</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">4</span>
+                    <span>Pastikan penerima adalah <strong>Accommerce by ACTiV</strong> dan nominal <strong>{formatPrice(grandTotal)}</strong>.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">5</span>
+                    <span>Konfirmasi dan masukkan PIN Anda. Sistem otomatis memproses pesanan Anda!</span>
+                  </li>
+                </ol>
+              </div>
+
+              <div className="flex items-center justify-center gap-space-md flex-wrap">
                 <button
-                  key={bank.id}
-                  onClick={() => setSelectedBank(bank)}
-                  className={`flex-1 text-[12px] font-bold py-2 px-3 rounded-lg transition-colors ${
-                    selectedBank.id === bank.id
-                      ? 'bg-primary text-on-primary'
-                      : 'bg-surface border border-border-subtle text-text-secondary hover:border-primary'
-                  }`}
+                  onClick={handleFinishPayment}
+                  className="bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm px-8 py-3.5 rounded-lg transition-colors shadow-sm font-semibold flex items-center gap-2 active:scale-95"
                 >
-                  {bank.id}
+                  <span>Simulasi: Pembayaran QRIS Berhasil</span>
+                  <span className="material-symbols-outlined text-[16px]">check</span>
                 </button>
-              ))}
-            </div>
-
-            <div className="flex justify-between items-center mb-3">
-              <span className="font-sku text-[12px] text-text-secondary">Bank Tujuan</span>
-              <span className="font-bold text-text-primary text-[13px]">{selectedBank.name}</span>
-            </div>
-            <div className="flex justify-between items-center mb-3">
-              <span className="font-sku text-[12px] text-text-secondary">Nomor VA</span>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-primary font-mono text-[16px]">{selectedBank.va}</span>
-                <button
-                  onClick={() => {
-                    navigator.clipboard?.writeText(selectedBank.va);
-                    setCopiedVA(true);
-                    setTimeout(() => setCopiedVA(false), 2000);
-                  }}
-                  className="text-[11px] text-primary hover:underline font-semibold"
+                <a
+                  href="/method/qris-accommerce.png"
+                  target="_blank"
+                  download="qris-accommerce.png"
+                  className="bg-surface hover:bg-surface-container text-text-primary font-label-sm text-label-sm px-6 py-3.5 rounded-lg transition-colors border border-border-subtle flex items-center gap-1.5"
                 >
-                  {copiedVA ? '✓ Tersalin' : 'Salin'}
+                  <span className="material-symbols-outlined text-[16px]">download</span>
+                  <span>Unduh QRIS</span>
+                </a>
+                <button
+                  onClick={() => setCurrentStep('checkout')}
+                  className="bg-transparent hover:bg-surface text-text-secondary hover:text-text-primary font-label-sm text-label-sm px-5 py-3.5 rounded-lg transition-colors"
+                >
+                  Kembali ke Checkout
                 </button>
               </div>
-            </div>
-            <div className="flex justify-between items-center mb-3">
-              <span className="font-sku text-[12px] text-text-secondary">Total Transfer</span>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-text-primary">{formatPrice(grandTotal)}</span>
+            </>
+          ) : (
+            /* VIRTUAL ACCOUNT PAYMENT VIEW */
+            <>
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-space-md">
+                <span className="material-symbols-outlined text-[36px] sm:text-[40px]">account_balance</span>
+              </div>
+              <span className="inline-block bg-amber-100 text-amber-700 font-sku text-[11px] font-bold px-3 py-1 rounded-full mb-2">
+                Menunggu Pembayaran Virtual Account
+              </span>
+              <span className="block font-sku text-[11px] text-text-secondary">Nomor Invoice: {orderNumber}</span>
+              <h1 className="font-headline-hero-mobile lg:font-headline-section text-text-primary mt-1 mb-2 font-bold">
+                Selesaikan Pembayaran Anda
+              </h1>
+              <p className="font-body-md text-[13px] sm:text-[14px] text-text-secondary max-w-[500px] mx-auto mb-space-xl">
+                Transfer ke Virtual Account sebelum batas waktu. Pembayaran otomatis terverifikasi.
+              </p>
+
+              {/* Countdown timer */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 max-w-[420px] mx-auto mb-space-xl">
+                <div className="text-[12px] sm:text-[13px] text-amber-700 font-semibold mb-1 flex items-center justify-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px]">schedule</span>
+                  Batas Waktu Pembayaran
+                </div>
+                <div className="text-[26px] sm:text-[28px] font-bold font-mono text-amber-700">23:59:00</div>
+                <div className="text-[11px] text-amber-600">Pesanan otomatis dibatalkan setelah habis waktu</div>
+              </div>
+
+              {/* VA Detail Card */}
+              <div className="bg-surface rounded-xl p-4 sm:p-space-xl max-w-[460px] mx-auto mb-space-xl text-left border border-border-subtle">
+                {/* Bank Selector Tabs */}
+                <div className="flex gap-2 mb-4">
+                  {BANKS.map(bank => (
+                    <button
+                      key={bank.id}
+                      onClick={() => setSelectedBank(bank)}
+                      className={`flex-1 text-[12px] font-bold py-2 px-3 rounded-lg transition-colors ${
+                        selectedBank.id === bank.id
+                          ? 'bg-primary text-on-primary'
+                          : 'bg-surface border border-border-subtle text-text-secondary hover:border-primary'
+                      }`}
+                    >
+                      {bank.id}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex justify-between items-center mb-3">
+                  <span className="font-sku text-[12px] text-text-secondary">Bank Tujuan</span>
+                  <span className="font-bold text-text-primary text-[13px]">{selectedBank.name}</span>
+                </div>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="font-sku text-[12px] text-text-secondary">Nomor VA</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-primary font-mono text-[16px]">{selectedBank.va}</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard?.writeText(selectedBank.va);
+                        setCopiedVA(true);
+                        setTimeout(() => setCopiedVA(false), 2000);
+                      }}
+                      className="text-[11px] text-primary hover:underline font-semibold"
+                    >
+                      {copiedVA ? '✓ Tersalin' : 'Salin'}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="font-sku text-[12px] text-text-secondary">Total Transfer</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-text-primary">{formatPrice(grandTotal)}</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard?.writeText(String(grandTotal));
+                        setCopiedAmount(true);
+                        setTimeout(() => setCopiedAmount(false), 2000);
+                      }}
+                      className="text-[11px] text-primary hover:underline font-semibold"
+                    >
+                      {copiedAmount ? '✓ Tersalin' : 'Salin'}
+                    </button>
+                  </div>
+                </div>
+                <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-[12px] text-amber-700">
+                  ⚠️ Transfer tepat sesuai nominal. Kelebihan/kekurangan 1 rupiah pun akan gagal terverifikasi otomatis.
+                </div>
+              </div>
+
+              {/* How to pay instructions */}
+              <div className="max-w-[460px] mx-auto mb-space-xl text-left bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-5">
+                <h3 className="font-title-card text-[14px] font-bold text-text-primary mb-3">Cara Bayar m-Banking:</h3>
+                <ol className="flex flex-col gap-2 text-[12px] sm:text-[13px] text-text-secondary">
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">1</span>
+                    <span>Login Mobile Banking → pilih menu <strong>Transfer / Bayar</strong></span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">2</span>
+                    <span>Pilih kategori <strong>Virtual Account</strong> → masukkan nomor VA</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">3</span>
+                    <span>Konfirmasi nominal & selesaikan pembayaran</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">4</span>
+                    <span>Verifikasi otomatis dalam 1–5 menit</span>
+                  </li>
+                </ol>
+              </div>
+
+              <div className="flex items-center justify-center gap-space-md flex-wrap">
                 <button
-                  onClick={() => {
-                    navigator.clipboard?.writeText(String(grandTotal));
-                    setCopiedAmount(true);
-                    setTimeout(() => setCopiedAmount(false), 2000);
-                  }}
-                  className="text-[11px] text-primary hover:underline font-semibold"
+                  onClick={handleFinishPayment}
+                  className="bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm px-8 py-3.5 rounded-lg transition-colors shadow-sm font-semibold flex items-center gap-2"
                 >
-                  {copiedAmount ? '✓ Tersalin' : 'Salin'}
+                  <span>Simulasi: Pembayaran Berhasil</span>
+                  <span className="material-symbols-outlined text-[16px]">check</span>
+                </button>
+                <button
+                  onClick={() => setCurrentStep('checkout')}
+                  className="bg-surface hover:bg-surface-container text-text-primary font-label-sm text-label-sm px-6 py-3.5 rounded-lg transition-colors border border-border-subtle"
+                >
+                  Kembali ke Form Checkout
                 </button>
               </div>
-            </div>
-            <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-[12px] text-amber-700">
-              ⚠️ Transfer tepat sesuai nominal. Kelebihan/kekurangan 1 rupiah pun akan gagal terverifikasi otomatis.
-            </div>
-          </div>
-
-          {/* How to pay instructions */}
-          <div className="max-w-[460px] mx-auto mb-space-xl text-left">
-            <h3 className="font-title-card text-[14px] font-bold text-text-primary mb-3">Cara Bayar m-Banking:</h3>
-            <ol className="flex flex-col gap-2 text-[13px] text-text-secondary">
-              <li className="flex gap-2">
-                <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">1</span>
-                <span>Login Mobile Banking → pilih menu <strong>Transfer / Bayar</strong></span>
-              </li>
-              <li className="flex gap-2">
-                <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">2</span>
-                <span>Pilih kategori <strong>Virtual Account</strong> → masukkan nomor VA</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">3</span>
-                <span>Konfirmasi nominal & selesaikan pembayaran</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] flex items-center justify-center shrink-0 font-bold mt-0.5">4</span>
-                <span>Verifikasi otomatis dalam 1–5 menit</span>
-              </li>
-            </ol>
-          </div>
-
-          <div className="flex items-center justify-center gap-space-md flex-wrap">
-            <button
-              onClick={handleFinishPayment}
-              className="bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm px-8 py-3.5 rounded-lg transition-colors shadow-sm font-semibold flex items-center gap-2"
-            >
-              <span>Simulasi: Pembayaran Berhasil</span>
-              <span className="material-symbols-outlined text-[16px]">check</span>
-            </button>
-            <button
-              onClick={() => setCurrentStep('checkout')}
-              className="bg-surface hover:bg-surface-container text-text-primary font-label-sm text-label-sm px-6 py-3.5 rounded-lg transition-colors border border-border-subtle"
-            >
-              Kembali ke Form Checkout
-            </button>
-          </div>
+            </>
+          )}
         </div>
       </div>
     );
@@ -696,7 +852,14 @@ export default function CheckoutPage() {
                       {m.icon}
                     </span>
                     <div className="flex-1">
-                      <div className="font-bold text-[14px] text-text-primary">{m.title}</div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-[14px] text-text-primary">{m.title}</span>
+                        {m.badge && (
+                          <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                            {m.badge}
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[12px] text-text-secondary">{m.desc}</div>
                     </div>
                   </label>

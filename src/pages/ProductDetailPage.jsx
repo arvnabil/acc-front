@@ -836,57 +836,57 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Main CTA buttons */}
-              <div className="flex gap-3 mt-1">
+              <div className="flex gap-2.5 sm:gap-3 mt-2">
                 <button
                   onClick={handleAddToCart}
                   disabled={isOutOfStock}
-                  className={`flex-1 h-12 rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all border-2
+                  className={`flex-1 min-w-0 h-12 rounded-xl font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 transition-all border-2
                     ${
                       added
                         ? "bg-emerald-50 border-emerald-500 text-emerald-700"
                         : isOutOfStock
                           ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                          : "bg-white border-primary text-primary hover:bg-primary/5"
+                          : "bg-white border-primary text-primary hover:bg-primary/5 active:scale-98"
                     }`}
                 >
-                  <span className="material-symbols-outlined text-[20px]">
+                  <span className="material-symbols-outlined text-[19px] flex-shrink-0">
                     {added ? "check" : "add_shopping_cart"}
                   </span>
-                  {added ? "Ditambahkan!" : "+ Masukkan Keranjang"}
+                  <span className="truncate">{added ? "Ditambahkan!" : "+ Masukkan Keranjang"}</span>
                 </button>
                 <button
                   onClick={handleBuyNow}
                   disabled={isOutOfStock}
-                  className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+                  className="flex-1 min-w-0 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed shadow-md shadow-primary/20 active:scale-98"
                 >
-                  Beli Sekarang
-                  <span className="material-symbols-outlined text-[20px]">
+                  <span className="truncate">Beli Sekarang</span>
+                  <span className="material-symbols-outlined text-[19px] flex-shrink-0">
                     arrow_forward
                   </span>
                 </button>
               </div>
 
               {/* Secondary actions */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-2.5">
                 <Link
                   to="/minta-penawaran"
-                  className="h-11 border border-gray-200 rounded-xl text-[12px] font-semibold text-gray-600 hover:border-primary hover:text-primary flex items-center justify-center gap-1.5 transition-colors"
+                  className="h-10 sm:h-11 border border-border-subtle bg-surface/30 rounded-xl text-[11px] sm:text-[12px] font-semibold text-text-primary hover:border-primary hover:text-primary flex items-center justify-center gap-1.5 transition-colors px-2 text-center"
                 >
-                  <span className="material-symbols-outlined text-[16px]">
+                  <span className="material-symbols-outlined text-[16px] flex-shrink-0 text-primary">
                     request_quote
                   </span>
-                  Minta Surat Penawaran (RFQ)
+                  <span className="truncate">Minta Penawaran (RFQ)</span>
                 </Link>
                 <a
                   href="https://wa.me/6287780116800"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="h-11 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  className="h-10 sm:h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] sm:text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-colors px-2 text-center shadow-sm"
                 >
-                  <span className="material-symbols-outlined text-[16px]">
+                  <span className="material-symbols-outlined text-[16px] flex-shrink-0">
                     chat
                   </span>
-                  Chat Sales WA (Fast Respon)
+                  <span className="truncate">Chat Sales WA</span>
                 </a>
               </div>
 
@@ -1159,39 +1159,46 @@ export default function ProductDetailPage() {
       </div>
 
       {/* ── Mobile sticky Add-to-Cart bar ──────────────────────────────── */}
-      <div className="fixed bottom-[60px] left-0 right-0 bg-white border-t border-gray-200 px-3 py-2.5 flex items-center gap-2 lg:hidden z-30 shadow-lg" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)' }}>
-        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+      <div className="fixed bottom-[60px] left-0 right-0 bg-white border-t border-border-subtle px-3 py-2 flex items-center gap-2 lg:hidden z-30 shadow-[0_-4px_16px_rgba(11,28,48,0.08)]" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }}>
+        {/* Compact Stepper */}
+        <div className="flex items-center border border-border-subtle rounded-xl bg-surface/50 h-10 px-1 flex-shrink-0">
           <button
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
             disabled={quantity <= 1}
-            className="w-8 h-9 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
+            className="w-6 h-full flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 active:scale-95"
+            aria-label="Kurangi jumlah"
           >
-            <span className="material-symbols-outlined text-[16px]">remove</span>
+            <span className="material-symbols-outlined text-[15px]">remove</span>
           </button>
-          <span className="w-7 text-center font-semibold text-[13px]">{quantity}</span>
+          <span className="w-6 text-center font-bold text-[12px] text-text-primary">{quantity}</span>
           <button
             onClick={() => setQuantity((q) => Math.min(stock, q + 1))}
             disabled={quantity >= stock}
-            className="w-8 h-9 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
+            className="w-6 h-full flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 active:scale-95"
+            aria-label="Tambah jumlah"
           >
-            <span className="material-symbols-outlined text-[16px]">add</span>
+            <span className="material-symbols-outlined text-[15px]">add</span>
           </button>
         </div>
+
+        {/* Add to Cart button */}
         <button
           onClick={handleAddToCart}
           disabled={isOutOfStock}
-          className={`flex-1 min-w-0 h-9 rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 border-2 transition-all
-            ${added ? "bg-emerald-50 border-emerald-500 text-emerald-700" : isOutOfStock ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed" : "border-primary text-primary"}`}
+          className={`flex-1 min-w-0 h-10 rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 border-2 transition-all active:scale-98
+            ${added ? "bg-emerald-50 border-emerald-500 text-emerald-700" : isOutOfStock ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed" : "border-primary text-primary hover:bg-primary/5"}`}
         >
-          <span className="material-symbols-outlined text-[15px]">{added ? "check" : "add_shopping_cart"}</span>
-          <span className="truncate">{added ? "Ditambahkan!" : "Keranjang"}</span>
+          <span className="material-symbols-outlined text-[16px] flex-shrink-0">{added ? "check" : "add_shopping_cart"}</span>
+          <span className="truncate">{added ? "Ditambahkan!" : "+ Keranjang"}</span>
         </button>
+
+        {/* Buy Now button */}
         <button
           onClick={handleBuyNow}
           disabled={isOutOfStock}
-          className="flex-1 min-w-0 h-9 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 transition-all disabled:bg-gray-200 disabled:text-gray-400 px-2"
+          className="flex-1 min-w-0 h-10 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-[12px] flex items-center justify-center gap-1 transition-all disabled:bg-gray-200 disabled:text-gray-400 shadow-sm shadow-primary/20 active:scale-98 px-2"
         >
-          <span className="truncate">Beli Sekarang</span>
+          <span className="whitespace-nowrap">Beli Sekarang</span>
           <span className="material-symbols-outlined text-[15px] flex-shrink-0">arrow_forward</span>
         </button>
       </div>

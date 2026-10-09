@@ -525,6 +525,8 @@ export default function Layout() {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [location.pathname]);
 
+  const isProductDetail = location.pathname.startsWith('/produk/');
+
   return (
     <div className="min-h-[100dvh] flex flex-col bg-page-background">
       <Header categories={categories} />
@@ -537,7 +539,7 @@ export default function Layout() {
       <BottomNav />
 
       {/* Floating WhatsApp Bubble Chat (Sesuai Static Template) */}
-      <aside className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 z-40">
+      <aside className={`fixed right-4 lg:right-8 z-40 transition-all duration-300 ${isProductDetail ? 'bottom-[126px] lg:bottom-8' : 'bottom-[72px] lg:bottom-8'}`}>
         {/* Desktop version: Pill badge dengan teks CS (24 Jam) */}
         <a 
           href="https://wa.me/6287780116800" 

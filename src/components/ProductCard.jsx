@@ -31,16 +31,24 @@ function CardBadge({ product }) {
 // ─── Stock badge ──────────────────────────────────────────────────────────
 function StockBadge({ stock }) {
   if (stock === 0) return (
-    <span className="text-[11px] font-semibold bg-red-100 text-red-700 px-2 py-0.5 rounded">Stok Habis</span>
+    <span className="inline-block text-[10px] sm:text-[11px] font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded leading-tight">
+      Stok Habis
+    </span>
   );
   if (stock <= 5) return (
-    <span className="text-[11px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Stok Pre-Order: {stock} Unit</span>
+    <span className="inline-block text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-800 px-2 py-0.5 rounded leading-tight">
+      Pre-Order: {stock} Unit
+    </span>
   );
   if (stock <= 15) return (
-    <span className="text-[11px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Stok Gudang BSD: {stock} Unit</span>
+    <span className="inline-block text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-800 px-2 py-0.5 rounded leading-tight">
+      Gudang BSD: {stock} Unit
+    </span>
   );
   return (
-    <span className="text-[11px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">Stok Ready: {stock} Unit</span>
+    <span className="inline-block text-[10px] sm:text-[11px] font-bold bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded leading-tight">
+      Ready: {stock} Unit
+    </span>
   );
 }
 
@@ -180,12 +188,12 @@ export default function ProductCard({ product }) {
         </div>
 
         {/* Action buttons */}
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2.5 flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
             aria-label={`Tambah ${product.name} ke keranjang`}
-            className={`flex-1 h-9 rounded-lg text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-all
+            className={`flex-1 min-w-0 h-9 rounded-lg text-[11px] sm:text-[12px] font-bold flex items-center justify-center gap-1 px-1.5 sm:px-2 transition-all shadow-sm
               ${added
                 ? 'bg-emerald-600 text-white'
                 : isOutOfStock
@@ -193,15 +201,15 @@ export default function ProductCard({ product }) {
                 : 'bg-primary hover:bg-primary/90 text-white active:scale-95'
               }`}
           >
-            <span className="material-symbols-outlined text-[15px]">
+            <span className="material-symbols-outlined text-[15px] flex-shrink-0">
               {added ? 'check' : 'add_shopping_cart'}
             </span>
-            {added ? 'Ditambahkan' : '+Keranjang'}
+            <span className="truncate">{added ? 'Ditambahkan' : '+Keranjang'}</span>
           </button>
 
           <Link
             to={`/produk/${product.slug}`}
-            className="h-9 px-3 rounded-lg border border-gray-300 text-[12px] font-semibold text-gray-600 hover:border-primary hover:text-primary flex items-center justify-center transition-colors"
+            className="h-9 px-2.5 sm:px-3 rounded-lg border border-border-subtle bg-surface/50 text-[11px] sm:text-[12px] font-semibold text-text-secondary hover:text-primary hover:border-primary hover:bg-surface flex items-center justify-center flex-shrink-0 transition-colors"
           >
             Detail
           </Link>
