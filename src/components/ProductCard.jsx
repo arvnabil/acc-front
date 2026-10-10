@@ -16,7 +16,7 @@ const RENTAL_CAT_IDS = [13, 14]; // 'Sewa', 'Sewa Produk'
 const LICENSE_SKUS = ['CFQ7TTC0LH18', 'CFQ7TTC0LDPB'];
 
 // ─── Badge top-left ───────────────────────────────────────────────────────
-function CardBadge({ product, isRental, isLicense }) {
+function CardBadge({ product, isRental, isLicense, isFlashSale }) {
   if (isRental) return (
     <span className="bg-orange-600 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm">
       <span className="material-symbols-outlined text-[12px]">calendar_month</span>
@@ -29,8 +29,8 @@ function CardBadge({ product, isRental, isLicense }) {
       Lisensi Digital
     </span>
   );
-  if (product.is_flash_sale) return (
-    <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
+  if (isFlashSale || product.is_flash_sale) return (
+    <span className="bg-[#ee4d2d] text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
       <span className="material-symbols-outlined text-[12px]">local_fire_department</span>
       Flash Sale
     </span>
@@ -103,12 +103,13 @@ export default function ProductCard({ product }) {
   const isRental = (product?.category_ids || []).some(id => RENTAL_CAT_IDS.includes(id))
     || (product?.name || '').toLowerCase().includes('sewa ');
   const isLicense = LICENSE_SKUS.includes((product?.sku || '').toUpperCase());
+  const isOutOfStock = product.stock === 0;
+  const price = product.sale_price || product.regular_price;
+  const hasDiscount = Boolean(product.sale_price && product.sale_price < product.regular_price);
+  const isFlashSale = Boolean(product?.is_flash_sale || (hasDiscount && !isRental && !isLicense));
 
   const image = (product.images?.[0] || '').split(',')[0].trim() ||
     `https://picsum.photos/seed/${product.sku || product.id}/400/400`;
-  const isOutOfStock = product.stock === 0;
-  const price = product.sale_price || product.regular_price;
-  const hasDiscount = product.sale_price && product.sale_price < product.regular_price;
 
   // Wishlist state
   const wishlistKey = `prod-${product.id}`;
@@ -178,7 +179,7 @@ export default function ProductCard({ product }) {
           
           {/* Top-left: label badge */}
           <div className="absolute top-2 left-2 z-10">
-            <CardBadge product={product} isRental={isRental} isLicense={isLicense} />
+            <CardBadge product={product} isRental={isRental} isLicense={isLicense} isFlashSale={isFlashSale} />
           </div>
 
           {/* Top-right: wishlist heart button */}

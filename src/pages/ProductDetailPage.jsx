@@ -611,6 +611,7 @@ export default function ProductDetailPage() {
   const isRental = (product?.category_ids || []).some(id => RENTAL_CAT_IDS.includes(id))
     || (product?.name || '').toLowerCase().includes('sewa ');
   const isLicense = LICENSE_SKUS.includes((product?.sku || '').toUpperCase());
+  const isFlashSale = Boolean(product?.is_flash_sale || (hasDiscount && !isRental && !isLicense));
 
   // Rental price calculation
   const rentalDays = getRentalDays(rentalStartDate, rentalEndDate);
@@ -858,8 +859,8 @@ export default function ProductDetailPage() {
             <div className="flex flex-col gap-4">
               {/* Badges row */}
               <div className="flex items-center flex-wrap gap-2">
-                {product.is_flash_sale && (
-                  <span className="bg-red-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
+                {isFlashSale && (
+                  <span className="bg-[#ee4d2d] text-white text-[11px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
                     <span className="material-symbols-outlined text-[13px]">local_fire_department</span>
                     Flash Sale
                   </span>
@@ -920,112 +921,160 @@ export default function ProductDetailPage() {
                 <span className="text-gray-500 text-[13px]">120+ Terjual</span>
               </div>
 
-              {/* Flash Sale Banner & Countdown */}
-              {product.is_flash_sale && (
-                <div className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 rounded-xl p-3 sm:p-3.5 text-white shadow-md flex items-center justify-between flex-wrap gap-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+              {/* Shopee-style Flash Sale Box with Countdown & Price */}
+              {isFlashSale ? (
+                <div className="rounded-xl overflow-hidden shadow-sm border border-[#ee4d2d]/30">
+                  {/* Shopee Red/Orange Header */}
+                  <div className="bg-gradient-to-r from-[#ee4d2d] via-[#f05d40] to-[#ff7337] px-4 py-2.5 text-white flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[20px] text-yellow-300 animate-pulse">local_fire_department</span>
+                      <span className="font-black text-[15px] sm:text-[16px] tracking-wider uppercase italic">FLASH SALE</span>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-[14px] sm:text-[15px] tracking-wide uppercase">FLASH SALE</span>
-                        {discountPct > 0 && (
-                          <span className="bg-yellow-400 text-red-900 text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider">
-                            HEMAT {discountPct}%
+                    <div className="flex items-center gap-2 ml-auto">
+                      <span className="text-[11px] font-bold text-white/95 uppercase tracking-wider flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[15px]">schedule</span>
+                        BERAKHIR DALAM
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {[countdown.h, countdown.m, countdown.s].map((v, i) => (
+                          <span
+                            key={i}
+                            className="bg-black text-white text-[12px] font-mono font-bold px-1.5 py-0.5 rounded min-w-[24px] text-center shadow-inner"
+                          >
+                            {String(v).padStart(2, '0')}
                           </span>
-                        )}
+                        ))}
                       </div>
-                      <div className="text-[11px] text-white/90">Penawaran waktu & stok terbatas!</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
-                    <span className="text-[11px] text-white/90 font-medium mr-0.5 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">schedule</span>
-                      Berakhir dlm:
-                    </span>
-                    {[countdown.h, countdown.m, countdown.s].map((v, i) => (
-                      <span
-                        key={i}
-                        className="bg-black/35 backdrop-blur-sm border border-white/20 rounded-md px-2 py-0.5 font-mono font-bold text-[13px] text-white min-w-[28px] text-center shadow-inner"
-                      >
-                        {String(v).padStart(2, '0')}
+
+                  {/* Price Body */}
+                  <div className="bg-[#fff8f5] p-4">
+                    <div className="flex items-baseline gap-3 flex-wrap">
+                      <div className="text-[30px] sm:text-[34px] font-black text-[#ee4d2d] leading-none">
+                        {formatPrice(displayPrice)}
+                      </div>
+                      {hasDiscount && (
+                        <span className="text-[15px] sm:text-[16px] text-gray-400 line-through">
+                          {formatPrice(regularPrice)}
+                        </span>
+                      )}
+                      {discountPct > 0 && (
+                        <span className="bg-[#ee4d2d] text-white text-[12px] font-black px-1.5 py-0.5 rounded shadow-sm">
+                          -{discountPct}%
+                        </span>
+                      )}
+                      <span className="text-[12px] text-gray-500 font-normal">+ PPN 11%</span>
+                    </div>
+
+                    {displayPrice > 0 && (
+                      <div className="mt-2.5 flex items-center gap-1.5 text-amber-700 font-semibold text-[12px] bg-amber-100/60 w-max px-2.5 py-1 rounded">
+                        <span className="material-symbols-outlined text-[16px] animate-pulse">
+                          stars
+                        </span>
+                        Dapatkan hingga {Math.floor(displayPrice / 10000)} Poin Reward
+                      </div>
+                    )}
+                    {product.is_dummy_price && (
+                      <p className="text-[11px] text-gray-400 mt-2">
+                        * Harga estimasi. Hubungi CS untuk penawaran resmi.
+                      </p>
+                    )}
+
+                    {/* Benefits row */}
+                    <div className="flex flex-wrap gap-3 mt-3 pt-3 border-t border-orange-100">
+                      <span className="flex items-center gap-1.5 text-[12px] text-gray-600">
+                        <span className="material-symbols-outlined text-primary text-[16px]">
+                          verified
+                        </span>
+                        100% Produk Original
                       </span>
-                    ))}
+                      <span className="flex items-center gap-1.5 text-[12px] text-gray-600">
+                        <span className="material-symbols-outlined text-primary text-[16px]">
+                          local_shipping
+                        </span>
+                        Siap Kirim ke Seluruh Indonesia
+                      </span>
+                      <span className="flex items-center gap-1.5 text-[12px] text-gray-600">
+                        <span className="material-symbols-outlined text-primary text-[16px]">
+                          support_agent
+                        </span>
+                        Garansi & Support Resmi
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Regular / Rental / License Price box */
+                <div className="bg-[#fff8f0] border border-orange-200 rounded-xl p-4">
+                  {hasDiscount && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[13px] text-gray-400 line-through">
+                        {formatPrice(regularPrice)}
+                      </span>
+                      {isRental && <span className="text-[11px] text-orange-600 font-semibold">/ hari</span>}
+                      {isLicense && !isRental && <span className="text-[11px] text-purple-600 font-semibold">/ seat / thn</span>}
+                      <span className="bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded">
+                        DISKON {discountPct}%
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <div className={`text-[28px] font-extrabold leading-none ${
+                      isRental ? 'text-orange-600' : isLicense ? 'text-purple-700' : 'text-primary'
+                    }`}>
+                      {formatPrice(displayPrice)}
+                    </div>
+                    {isRental && (
+                      <span className="text-[13px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">
+                        / hari
+                      </span>
+                    )}
+                    {isLicense && !isRental && (
+                      <span className="text-[13px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">
+                        / seat / tahun
+                      </span>
+                    )}
+                    <span className="text-[12px] text-gray-500 font-normal">+ PPN 11%</span>
+                  </div>
+                  {displayPrice > 0 && (
+                    <div className="mt-2.5 flex items-center gap-1.5 text-amber-700 font-semibold text-[12px] bg-amber-100/60 w-max px-2.5 py-1 rounded">
+                      <span className="material-symbols-outlined text-[16px] animate-pulse">
+                        stars
+                      </span>
+                      Dapatkan hingga {Math.floor(displayPrice / 10000)} Poin
+                      Reward
+                    </div>
+                  )}
+                  {product.is_dummy_price && (
+                    <p className="text-[11px] text-gray-400 mt-2">
+                      * Harga estimasi. Hubungi CS untuk penawaran resmi.
+                    </p>
+                  )}
+
+                  {/* Benefits row */}
+                  <div className="flex flex-wrap gap-3 mt-3 pt-3 border-t border-orange-100">
+                    <span className="flex items-center gap-1.5 text-[12px] text-gray-600">
+                      <span className="material-symbols-outlined text-primary text-[16px]">
+                        verified
+                      </span>
+                      100% Produk Original
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[12px] text-gray-600">
+                      <span className="material-symbols-outlined text-primary text-[16px]">
+                        local_shipping
+                      </span>
+                      Siap Kirim ke Seluruh Indonesia
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[12px] text-gray-600">
+                      <span className="material-symbols-outlined text-primary text-[16px]">
+                        support_agent
+                      </span>
+                      Garansi & Support Resmi
+                    </span>
                   </div>
                 </div>
               )}
-
-              {/* Price box */}
-              <div className={`rounded-xl p-4 border ${
-                product.is_flash_sale
-                  ? 'bg-gradient-to-br from-red-50/70 via-orange-50/50 to-amber-50/70 border-red-200'
-                  : 'bg-[#fff8f0] border-orange-200'
-              }`}>
-                {hasDiscount && (
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[13px] text-gray-400 line-through">
-                      {formatPrice(regularPrice)}
-                    </span>
-                    {isRental && <span className="text-[11px] text-orange-600 font-semibold">/ hari</span>}
-                    {isLicense && !isRental && <span className="text-[11px] text-purple-600 font-semibold">/ seat / thn</span>}
-                    <span className="bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded">
-                      DISKON {discountPct}%
-                    </span>
-                  </div>
-                )}
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <div className={`text-[28px] font-extrabold leading-none ${
-                    isRental ? 'text-orange-600' : isLicense ? 'text-purple-700' : 'text-primary'
-                  }`}>
-                    {formatPrice(displayPrice)}
-                  </div>
-                  {isRental && (
-                    <span className="text-[13px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">
-                      / hari
-                    </span>
-                  )}
-                  {isLicense && !isRental && (
-                    <span className="text-[13px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">
-                      / seat / tahun
-                    </span>
-                  )}
-                  <span className="text-[12px] text-gray-500 font-normal">+ PPN 11%</span>
-                </div>
-                {displayPrice > 0 && (
-                  <div className="mt-2.5 flex items-center gap-1.5 text-amber-700 font-semibold text-[12px] bg-amber-100/60 w-max px-2.5 py-1 rounded">
-                    <span className="material-symbols-outlined text-[16px] animate-pulse">
-                      stars
-                    </span>
-                    Dapatkan hingga {Math.floor(displayPrice / 10000)} Poin
-                    Reward
-                  </div>
-                )}
-                {product.is_dummy_price && (
-                  <p className="text-[11px] text-gray-400 mt-2">
-                    * Harga estimasi. Hubungi CS untuk penawaran resmi.
-                  </p>
-                )}
-
-                {/* Benefits row */}
-                <div className="flex flex-wrap gap-3 mt-3 pt-3 border-t border-orange-100">
-                  <span className="flex items-center gap-1.5 text-[12px] text-gray-600">
-                    <span className="material-symbols-outlined text-primary text-[16px]">
-                      verified
-                    </span>
-                    Termasuk di Accommerce
-                  </span>
-                  <span className="flex items-center gap-1.5 text-[12px] text-gray-600">
-                    <span className="material-symbols-outlined text-emerald-600 text-[16px]">
-                      local_shipping
-                    </span>
-                    Bebas Ongkir Xtra
-                  </span>
-                  <span className="flex items-center gap-1.5 text-[12px] text-gray-500">
-                    Harga belum termasuk PPN 11% (ditambahkan otomatis)
-                  </span>
-                </div>
-              </div>
 
               {/* Voucher row */}
               <div className="flex items-center flex-wrap gap-2 text-[12px]">
