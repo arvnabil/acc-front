@@ -82,14 +82,14 @@ export default function LicenseConfigModal({ product, isOpen, onClose, onSuccess
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center pb-[60px] sm:pb-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="license-modal-title"
     >
       <div
-        className="w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200"
+        className="w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[88vh] overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile drag handle pill */}

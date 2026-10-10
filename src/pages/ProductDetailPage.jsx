@@ -836,6 +836,12 @@ export default function ProductDetailPage() {
             <div className="flex flex-col gap-4">
               {/* Badges row */}
               <div className="flex items-center flex-wrap gap-2">
+                {product.is_flash_sale && (
+                  <span className="bg-red-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
+                    <span className="material-symbols-outlined text-[13px]">bolt</span>
+                    Flash Sale
+                  </span>
+                )}
                 {isRental ? (
                   <span className="bg-orange-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 shadow-sm">
                     <span className="material-symbols-outlined text-[13px]">calendar_month</span>
@@ -856,7 +862,7 @@ export default function ProductDetailPage() {
                 </span>
                 {product.sku && (
                   <span className="text-[11px] text-gray-500">
-                    SKU:{" "}
+                    SKU{" "}
                     <span className="font-mono font-semibold text-gray-700">
                       {product.sku}
                     </span>
