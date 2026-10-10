@@ -31,31 +31,73 @@ function ReviewSection({ product, user, updateUser }) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [hoverRating, setHoverRating] = useState(0);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [images, setImages] = useState([]);
+  const [video, setVideo] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+  const [selectedImageModal, setSelectedImageModal] = useState(null);
 
-  const hasPurchased = user
-    ? (user.orders || []).some((o) =>
+  // Check matching orders for repeat purchases support
+  const matchingOrders = user
+    ? (user.orders || []).filter((o) =>
         (o.items || []).some((item) =>
-          item.name
-            .toLowerCase()
-            .includes(product.name.split(" ")[0].toLowerCase()),
-        ),
+          item.name.toLowerCase().includes(product.name.split(" ")[0].toLowerCase()) ||
+          product.name.toLowerCase().includes(item.name.toLowerCase())
+        )
       )
-    : false;
+    : [];
 
-  const hasReviewed = user
-    ? reviews.some((r) => r.userEmail === user.email)
-    : false;
+  // Filter which orders have NOT yet been reviewed
+  const reviewedOrderIds = reviews
+    .filter((r) => r.userEmail === user?.email)
+    .map((r) => r.orderId);
+
+  const unreviewedOrders = matchingOrders.filter(
+    (o) => !reviewedOrderIds.includes(o.id)
+  );
+
+  const canWriteReview = user && unreviewedOrders.length > 0;
+  const targetOrder = unreviewedOrders[0];
+
+  function handleImageUpload(e) {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    files.slice(0, 5 - images.length).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImages((prev) => [...prev, event.target.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function handleVideoUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) {
+      alert("Ukuran video maksimal 25MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setVideo(event.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
     if (!comment.trim()) return;
     const newReview = {
       id: Date.now(),
+      orderId: targetOrder?.id || `ORD-${Date.now()}`,
       userEmail: user.email,
-      userName: user.name,
+      userName: isAnonymous ? "Pengguna Anonim" : (user.name || "Pelanggan Accommerce"),
+      isAnonymous,
       rating,
       comment: comment.trim(),
+      images,
+      video,
       date: new Date().toLocaleDateString("id-ID", {
         day: "2-digit",
         month: "long",
@@ -66,9 +108,14 @@ function ReviewSection({ product, user, updateUser }) {
     setReviews(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     setComment("");
+    setImages([]);
+    setVideo(null);
     setSubmitted(true);
-    if (user && (user.reviewsPending || 0) > 0) {
-      updateUser({ reviewsPending: (user.reviewsPending || 0) - 1 });
+    if (user && updateUser) {
+      updateUser({
+        points: (user.points || 0) + 50,
+        reviewsPending: Math.max(0, (user.reviewsPending || 0) - 1),
+      });
     }
   }
 
@@ -100,17 +147,25 @@ function ReviewSection({ product, user, updateUser }) {
         </div>
       </div>
 
-      {/* Write review form */}
-      {user && hasPurchased && !hasReviewed && !submitted && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-5">
-          <h3 className="font-bold text-[14px] text-gray-900 mb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-[18px]">
-              rate_review
+      {/* Write review form with photos, video, anonymous, and repeat purchase support */}
+      {canWriteReview && !submitted && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-[14px] text-gray-900 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-[18px]">
+                rate_review
+              </span>
+              Tulis Ulasan Pesanan #{targetOrder?.id}
+            </h3>
+            <span className="text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <span className="material-symbols-outlined text-[13px]">stars</span>
+              Bonus +50 Poin
             </span>
-            Tulis Ulasan Anda
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="flex gap-1">
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Star selector */}
+            <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
@@ -118,7 +173,7 @@ function ReviewSection({ product, user, updateUser }) {
                   onClick={() => setRating(star)}
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(0)}
-                  className="transition-transform hover:scale-110"
+                  className="transition-transform hover:scale-110 p-0.5 cursor-pointer"
                 >
                   <span
                     className="material-symbols-outlined text-[28px]"
@@ -135,7 +190,7 @@ function ReviewSection({ product, user, updateUser }) {
                   </span>
                 </button>
               ))}
-              <span className="ml-2 text-sm text-gray-500 self-center">
+              <span className="ml-2 text-xs font-semibold text-gray-600">
                 {
                   [
                     "",
@@ -144,27 +199,90 @@ function ReviewSection({ product, user, updateUser }) {
                     "Cukup",
                     "Bagus",
                     "Sangat Bagus",
-                  ][rating]
+                  ][hoverRating || rating]
                 }
               </span>
             </div>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={3}
-              placeholder="Bagikan pengalaman Anda menggunakan produk ini..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary resize-none bg-white"
-              required
-            />
-            <button
-              type="submit"
-              className="bg-primary hover:bg-primary/90 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-2"
-            >
-              <span className="material-symbols-outlined text-[16px]">
-                send
-              </span>
-              Kirim Ulasan
-            </button>
+
+            {/* Comment */}
+            <div>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+                placeholder="Bagikan pengalaman Anda menggunakan produk ini (kualitas, kepuasan, performa)..."
+                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary resize-none bg-white"
+                required
+              />
+            </div>
+
+            {/* Media Upload (Photos & Video) */}
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                {images.map((img, idx) => (
+                  <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-gray-300">
+                    <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setImages((imgs) => imgs.filter((_, i) => i !== idx))}
+                      className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {images.length < 5 && (
+                  <label className="w-14 h-14 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary flex flex-col items-center justify-center text-gray-500 hover:text-primary cursor-pointer transition-colors bg-white">
+                    <span className="material-symbols-outlined text-[18px]">add_a_photo</span>
+                    <span className="text-[9px] font-semibold">Foto</span>
+                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+                  </label>
+                )}
+                {!video && (
+                  <label className="h-14 px-3 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary flex items-center gap-1.5 text-gray-500 hover:text-primary cursor-pointer transition-colors bg-white">
+                    <span className="material-symbols-outlined text-[18px]">videocam</span>
+                    <span className="text-xs font-semibold">Tambah Video</span>
+                    <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+                  </label>
+                )}
+              </div>
+
+              {video && (
+                <div className="relative rounded-lg overflow-hidden border border-gray-300 bg-black max-w-xs max-h-32">
+                  <video src={video} controls className="w-full max-h-32 object-contain" />
+                  <button
+                    type="button"
+                    onClick={() => setVideo(null)}
+                    className="absolute top-1 right-1 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded font-bold"
+                  >
+                    Hapus Video
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Checkbox Anonymous & Submit */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-blue-200">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                  className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary cursor-pointer"
+                />
+                <span className="text-xs font-medium text-gray-700">
+                  Sembunyikan nama (Kirim sebagai Pengguna Anonim)
+                </span>
+              </label>
+
+              <button
+                type="submit"
+                className="bg-primary hover:bg-primary/90 text-white font-bold px-5 py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm self-start sm:self-auto"
+              >
+                <span className="material-symbols-outlined text-[16px]">send</span>
+                Kirim Ulasan (+50 Poin)
+              </button>
+            </div>
           </form>
         </div>
       )}
@@ -175,7 +293,7 @@ function ReviewSection({ product, user, updateUser }) {
             check_circle
           </span>
           <span className="text-sm font-semibold text-emerald-800">
-            Ulasan Anda berhasil dikirimkan! Terima kasih.
+            Ulasan Anda berhasil dikirimkan! Bonus +50 Poin telah ditambahkan ke akun Anda.
           </span>
         </div>
       )}
@@ -185,26 +303,29 @@ function ReviewSection({ product, user, updateUser }) {
           <Link to="/login" className="text-primary font-semibold underline">
             Masuk
           </Link>{" "}
-          untuk menulis ulasan produk ini.
+          untuk menulis ulasan produk ini jika sudah pernah memesan.
         </div>
       )}
-      {user && !hasPurchased && !hasReviewed && (
+
+      {user && matchingOrders.length === 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-center text-sm text-amber-800">
           <span className="material-symbols-outlined text-[15px] align-middle mr-1">
             info
           </span>
-          Ulasan hanya dapat ditulis setelah Anda membeli produk ini.
+          Ulasan hanya dapat ditulis setelah Anda memesan produk ini.
         </div>
       )}
-      {user && hasReviewed && (
+
+      {user && matchingOrders.length > 0 && !canWriteReview && !submitted && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-5 flex items-center gap-2 text-sm text-emerald-800">
           <span className="material-symbols-outlined text-[16px]">
             check_circle
           </span>
-          Anda sudah memberikan ulasan untuk produk ini.
+          Semua pesanan Anda untuk produk ini ({matchingOrders.length}x pembelian) sudah diulas. Jika memesan ulang, Anda dapat mengulas kembali.
         </div>
       )}
 
+      {/* Reviews List */}
       {reviews.length === 0 ? (
         <div className="py-8 text-center text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
           <span className="material-symbols-outlined text-[40px] mb-2">
@@ -217,16 +338,24 @@ function ReviewSection({ product, user, updateUser }) {
       ) : (
         <div className="space-y-4">
           {reviews.map((r) => (
-            <div key={r.id} className="bg-gray-50 rounded-xl p-4">
+            <div key={r.id} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
-                  {r.userName.charAt(0).toUpperCase()}
+                  {r.isAnonymous ? "?" : r.userName?.charAt(0)?.toUpperCase() || "U"}
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-sm text-gray-900">
-                    {r.userName}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm text-gray-900">
+                      {r.isAnonymous ? "Pengguna Anonim" : r.userName}
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded border border-emerald-200">
+                      ✓ Pembeli Terverifikasi
+                    </span>
                   </div>
-                  <div className="text-xs text-gray-400">{r.date}</div>
+                  <div className="text-xs text-gray-400 flex items-center gap-2">
+                    <span>{r.date}</span>
+                    {r.orderId && <span>• Pesanan #{r.orderId}</span>}
+                  </div>
                 </div>
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((s) => (
@@ -244,11 +373,52 @@ function ReviewSection({ product, user, updateUser }) {
                   ))}
                 </div>
               </div>
-              <p className="text-sm text-gray-600 leading-relaxed">
+
+              <p className="text-sm text-gray-700 leading-relaxed">
                 {r.comment}
               </p>
+
+              {/* Photos attached */}
+              {r.images && r.images.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {r.images.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt="Ulasan foto"
+                      onClick={() => setSelectedImageModal(img)}
+                      className="w-16 h-16 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-85 transition-opacity"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Video attached */}
+              {r.video && (
+                <div className="mt-3 max-w-xs rounded-lg overflow-hidden border border-gray-300 bg-black">
+                  <video src={r.video} controls className="w-full max-h-40 object-contain" />
+                </div>
+              )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Lightbox Modal for Full Image View */}
+      {selectedImageModal && (
+        <div
+          onClick={() => setSelectedImageModal(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 cursor-pointer"
+        >
+          <div className="relative max-w-2xl max-h-[90vh]">
+            <img src={selectedImageModal} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-xl" />
+            <button
+              onClick={() => setSelectedImageModal(null)}
+              className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-2 hover:bg-black/90"
+            >
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

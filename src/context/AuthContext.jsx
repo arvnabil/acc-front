@@ -61,13 +61,41 @@ export function AuthProvider({ children }) {
             }
           ],
           wishlist: parsed.wishlist || ['prod-1', 'prod-3'],
-          reviewsPending: parsed.reviewsPending ?? 12
+          reviewsPending: parsed.reviewsPending ?? 12,
+          ewalletClaims: parsed.ewalletClaims || [
+            {
+              id: 'CLM-EW-89102',
+              date: '2 Oktober 2026, 14:20',
+              platform: 'GoPay',
+              phone: '0812-3456-7890',
+              accountName: parsed.name || 'John Doe',
+              points: 500,
+              amount: 50000,
+              status: 'Berhasil Ditransfer',
+              refNumber: 'TRX-98271635'
+            }
+          ],
+          reviewedOrderItems: parsed.reviewedOrderItems || []
         });
       } catch (e) {
         setUser(null);
       }
     }
   }, []);
+
+  const DEFAULT_EWALLET_CLAIMS = (name) => [
+    {
+      id: 'CLM-EW-89102',
+      date: '2 Oktober 2026, 14:20',
+      platform: 'GoPay',
+      phone: '0812-3456-7890',
+      accountName: name || 'John Doe',
+      points: 500,
+      amount: 50000,
+      status: 'Berhasil Ditransfer',
+      refNumber: 'TRX-98271635'
+    }
+  ];
 
   const DEFAULT_ADDRESSES = (name) => [
     {
@@ -121,7 +149,9 @@ export function AuthProvider({ children }) {
         }
       ],
       wishlist: userData.wishlist || ['prod-1', 'prod-3'],
-      reviewsPending: userData.reviewsPending ?? 12
+      reviewsPending: userData.reviewsPending ?? 12,
+      ewalletClaims: userData.ewalletClaims || DEFAULT_EWALLET_CLAIMS(userData.name),
+      reviewedOrderItems: userData.reviewedOrderItems || []
     };
     setUser(fullUser);
     localStorage.setItem('accommerce_user', JSON.stringify(fullUser));
@@ -178,6 +208,43 @@ export function AuthProvider({ children }) {
     });
   }
 
+  function claimEwalletPoints(claimData) {
+    if (!user || (user.points || 0) < claimData.points) {
+      return { success: false, message: 'Poin tidak mencukupi untuk klaim ini.' };
+    }
+    const newClaim = {
+      id: `CLM-EW-${Math.floor(10000 + Math.random() * 90000)}`,
+      date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      platform: claimData.platform,
+      phone: claimData.phone,
+      accountName: claimData.accountName,
+      points: claimData.points,
+      amount: claimData.rupiah,
+      status: 'Berhasil Ditransfer',
+      refNumber: `TRX-${Date.now().toString().slice(-8)}`
+    };
+    const currentClaims = user.ewalletClaims || [];
+    const updatedClaims = [newClaim, ...currentClaims];
+    updateUser({
+      points: (user.points || 0) - claimData.points,
+      walletBalance: (user.walletBalance || 0) + claimData.rupiah,
+      ewalletClaims: updatedClaims
+    });
+    return { success: true, claim: newClaim };
+  }
+
+  function markOrderItemReviewed(itemKey) {
+    if (!user) return;
+    const reviewed = user.reviewedOrderItems || [];
+    if (!reviewed.includes(itemKey)) {
+      updateUser({
+        reviewedOrderItems: [...reviewed, itemKey],
+        points: (user.points || 0) + 50,
+        reviewsPending: Math.max(0, (user.reviewsPending || 0) - 1)
+      });
+    }
+  }
+
   function redeemPointsForWallet(pointsToRedeem, rupiahValue) {
     if (!user || (user.points || 0) < pointsToRedeem) return false;
     updateUser({
@@ -218,6 +285,8 @@ export function AuthProvider({ children }) {
       addPoints,
       redeemPointsForWallet, 
       redeemPointsForVoucher,
+      claimEwalletPoints,
+      markOrderItemReviewed,
       saveAddress,
       deleteAddress,
       setDefaultAddress,

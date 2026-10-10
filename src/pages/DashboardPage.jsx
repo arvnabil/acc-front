@@ -3,9 +3,21 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import { getProducts } from '../services/productService';
+import InvoiceModal from '../components/InvoiceModal';
+import ReviewModal from '../components/ReviewModal';
 
 export default function DashboardPage() {
-  const { user, logout, redeemPointsForWallet, redeemPointsForVoucher, saveAddress, deleteAddress, setDefaultAddress } = useAuth();
+  const { 
+    user, 
+    logout, 
+    redeemPointsForWallet, 
+    redeemPointsForVoucher, 
+    claimEwalletPoints,
+    markOrderItemReviewed,
+    saveAddress, 
+    deleteAddress, 
+    setDefaultAddress 
+  } = useAuth();
   const { wishlist } = useWishlist();
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,6 +28,21 @@ export default function DashboardPage() {
   // Redeem state feedback
   const [feedback, setFeedback] = useState(null);
   const [wishlistProducts, setWishlistProducts] = useState([]);
+
+  // Invoice Modal State
+  const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState(null);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+
+  // Review Modal & Sub-tab State
+  const [reviewModalData, setReviewModalData] = useState(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewSubTab, setReviewSubTab] = useState('pending'); // 'pending' | 'completed'
+
+  // E-Wallet Claim Form State
+  const [ewalletPlatform, setEwalletPlatform] = useState('GoPay');
+  const [ewalletPhone, setEwalletPhone] = useState(user?.phone || '0812-3456-7890');
+  const [ewalletAccountName, setEwalletAccountName] = useState(user?.name || 'John Doe');
+  const [selectedEwalletPackage, setSelectedEwalletPackage] = useState({ points: 500, rupiah: 50000 });
 
   // Address management state
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -160,6 +187,60 @@ export default function DashboardPage() {
   function handleSetDefaultAddress(addrId) {
     setDefaultAddress(addrId);
     setFeedback({ type: 'success', message: 'Alamat utama berhasil diperbarui.' });
+  }
+
+  // Invoice Handler
+  function handleOpenInvoice(order) {
+    setSelectedInvoiceOrder(order);
+    setShowInvoiceModal(true);
+  }
+
+  // Review Handlers
+  function handleOpenReview(product, order) {
+    setReviewModalData({ product, order });
+    setShowReviewModal(true);
+  }
+
+  function handleReviewSubmitted(newReview) {
+    const key = `accommerce_reviews_${newReview.productId}`;
+    try {
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      localStorage.setItem(key, JSON.stringify([newReview, ...existing]));
+    } catch {}
+
+    const itemKey = `${newReview.orderId}_${newReview.productName}`;
+    if (markOrderItemReviewed) {
+      markOrderItemReviewed(itemKey);
+    }
+
+    setMyReviews(prev => [newReview, ...prev]);
+    setFeedback({ type: 'success', message: 'Ulasan Anda berhasil dikirim! Bonus +50 Poin ditambahkan ke akun Anda.' });
+  }
+
+  // E-Wallet Claim Handler
+  function handleClaimEwalletSubmit(e) {
+    e.preventDefault();
+    if (!ewalletPhone.trim() || !ewalletAccountName.trim()) {
+      setFeedback({ type: 'error', message: 'Mohon lengkapi nomor telepon dan nama akun e-wallet.' });
+      return;
+    }
+    if ((user?.points || 0) < selectedEwalletPackage.points) {
+      setFeedback({ type: 'error', message: `Poin Anda tidak mencukupi untuk menukar ${selectedEwalletPackage.points} Poin.` });
+      return;
+    }
+    const result = claimEwalletPoints({
+      platform: ewalletPlatform,
+      phone: ewalletPhone,
+      accountName: ewalletAccountName,
+      points: selectedEwalletPackage.points,
+      rupiah: selectedEwalletPackage.rupiah
+    });
+    if (result.success) {
+      setFeedback({
+        type: 'success',
+        message: `Berhasil klaim saldo ${ewalletPlatform} Rp ${selectedEwalletPackage.rupiah.toLocaleString('id-ID')} ke ${ewalletPhone}!`
+      });
+    }
   }
 
   const activeVouchersCount = user.vouchers ? user.vouchers.length : 3;
@@ -423,13 +504,32 @@ export default function DashboardPage() {
 
                       <div className="py-3">
                         <h4 className="font-bold text-[15px] text-text-primary mb-2">{order.title}</h4>
-                        <ul className="text-xs text-text-secondary space-y-1">
-                          {order.items.map((item, idx) => (
-                            <li key={idx} className="flex justify-between gap-2">
-                              <span className="flex-1 min-w-0 truncate">• {item.name} ({item.qty}x)</span>
-                              <span className="font-medium text-text-primary flex-shrink-0">Rp {(item.price * item.qty).toLocaleString('id-ID')}</span>
-                            </li>
-                          ))}
+                        <ul className="text-xs space-y-2">
+                          {order.items.map((item, idx) => {
+                            const itemKey = `${order.id}_${item.name}`;
+                            const isReviewed = (user.reviewedOrderItems || []).includes(itemKey) ||
+                              myReviews.some(r => r.orderId === order.id && r.productName === item.name);
+                            return (
+                              <li key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 rounded-lg bg-surface/50 border border-border-subtle">
+                                <span className="flex-1 min-w-0 font-medium text-text-primary">• {item.name} ({item.qty}x)</span>
+                                <div className="flex items-center gap-3 shrink-0">
+                                  <span className="font-semibold text-text-primary">Rp {(item.price * item.qty).toLocaleString('id-ID')}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenReview({ name: item.name, id: `prod-${idx + 1}` }, order)}
+                                    className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-colors flex items-center gap-1 cursor-pointer ${
+                                      isReviewed
+                                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                                        : 'border-primary text-primary hover:bg-primary hover:text-white shadow-2xs'
+                                    }`}
+                                  >
+                                    <span className="material-symbols-outlined text-[13px]">{isReviewed ? 'check_circle' : 'rate_review'}</span>
+                                    {isReviewed ? 'Sudah Diulas' : 'Beri Ulasan (+50 Poin)'}
+                                  </button>
+                                </div>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
 
@@ -439,8 +539,13 @@ export default function DashboardPage() {
                           <span className="text-base font-bold text-primary">Rp {order.total.toLocaleString('id-ID')}</span>
                         </div>
                         <div className="flex gap-2 self-end sm:self-auto">
-                          <button className="text-xs font-semibold px-4 py-2 border border-border-subtle rounded-lg hover:bg-surface text-text-primary transition-colors whitespace-nowrap">
-                            Rincian Faktur
+                          <button
+                            type="button"
+                            onClick={() => handleOpenInvoice(order)}
+                            className="text-xs font-bold px-3.5 py-2 border border-gray-300 rounded-lg hover:border-primary hover:text-primary text-text-primary transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer shadow-2xs bg-white"
+                          >
+                            <span className="material-symbols-outlined text-[16px] text-primary">receipt_long</span>
+                            Download Invoice
                           </button>
                           <Link to="/katalog" className="text-xs font-semibold px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors whitespace-nowrap">
                             Beli Lagi
@@ -764,73 +869,201 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Sub-section 1: Tukar Poin ke Saldo E-Wallet */}
-              <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-sm">
-                <div className="mb-4">
+              {/* Sub-section 1: Order Klaim Saldo E-Wallet & Riwayat Klaim */}
+              <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-sm space-y-6">
+                <div>
                   <h4 className="text-base font-bold text-text-primary flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
-                    Tukar Poin Jadi Saldo E-Wallet
+                    Klaim Saldo E-Wallet dari Poin
                   </h4>
-                  <p className="text-xs text-text-secondary mt-0.5">Saldo langsung bertambah ke Saldo E-Wallet Anda dan dapat digunakan langsung untuk belanja.</p>
+                  <p className="text-xs text-text-secondary mt-0.5">
+                    Tukarkan poin loyalty Anda menjadi saldo e-wallet asli. Masukkan nomor HP dan platform e-wallet tujuan penarikan saldo.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Option 1 */}
-                  <div className="border border-border-subtle rounded-xl p-4 flex flex-col justify-between hover:border-primary/50 transition-colors">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-text-secondary">E-Wallet 50rb</span>
-                        <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">500 Pts</span>
-                      </div>
-                      <div className="text-xl font-bold text-text-primary mb-1">Rp 50.000</div>
-                      <p className="text-[11px] text-text-secondary">Tambah saldo instan Rp 50.000 ke akun</p>
+                {/* Form Order Klaim */}
+                <form onSubmit={handleClaimEwalletSubmit} className="p-5 bg-surface/60 rounded-xl border border-border-subtle space-y-4">
+                  {/* Step 1: Pilih Platform */}
+                  <div>
+                    <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-2">
+                      1. Pilih Platform E-Wallet Tujuan
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                      {[
+                        { name: 'GoPay', color: 'bg-emerald-600 text-white', icon: 'payments' },
+                        { name: 'OVO', color: 'bg-purple-700 text-white', icon: 'credit_card' },
+                        { name: 'DANA', color: 'bg-sky-500 text-white', icon: 'account_balance_wallet' },
+                        { name: 'ShopeePay', color: 'bg-orange-500 text-white', icon: 'shopping_bag' },
+                        { name: 'LinkAja', color: 'bg-red-600 text-white', icon: 'send_to_mobile' },
+                      ].map((pl) => (
+                        <button
+                          key={pl.name}
+                          type="button"
+                          onClick={() => setEwalletPlatform(pl.name)}
+                          className={`p-3 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                            ewalletPlatform === pl.name
+                              ? `${pl.color} ring-2 ring-primary ring-offset-1 shadow-sm`
+                              : 'bg-white border-border-subtle text-text-primary hover:border-primary/50'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[20px]">{pl.icon}</span>
+                          <span>{pl.name}</span>
+                        </button>
+                      ))}
                     </div>
-                    <button
-                      onClick={() => handleRedeemWallet(500, 50000)}
-                      disabled={(user.points || 0) < 500}
-                      className="mt-4 w-full bg-primary hover:bg-primary-hover disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold py-2 rounded-lg transition-colors"
-                    >
-                      {(user.points || 0) >= 500 ? 'Tukar 500 Poin' : 'Poin Kurang'}
-                    </button>
                   </div>
 
-                  {/* Option 2 */}
-                  <div className="border border-border-subtle rounded-xl p-4 flex flex-col justify-between hover:border-primary/50 transition-colors">
+                  {/* Step 2: Nomor HP & Nama Pemilik */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-text-secondary">E-Wallet 100rb</span>
-                        <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">1.000 Pts</span>
-                      </div>
-                      <div className="text-xl font-bold text-text-primary mb-1">Rp 100.000</div>
-                      <p className="text-[11px] text-text-secondary">Tambah saldo instan Rp 100.000 ke akun</p>
+                      <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                        2. Nomor HP Akun {ewalletPlatform} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={ewalletPhone}
+                        onChange={(e) => setEwalletPhone(e.target.value)}
+                        placeholder="Cth: 081234567890"
+                        className="w-full bg-white border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary font-mono"
+                      />
                     </div>
-                    <button
-                      onClick={() => handleRedeemWallet(1000, 100000)}
-                      disabled={(user.points || 0) < 1000}
-                      className="mt-4 w-full bg-primary hover:bg-primary-hover disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold py-2 rounded-lg transition-colors"
-                    >
-                      {(user.points || 0) >= 1000 ? 'Tukar 1.000 Poin' : 'Poin Kurang'}
-                    </button>
+                    <div>
+                      <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                        3. Nama Pemilik Akun *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={ewalletAccountName}
+                        onChange={(e) => setEwalletAccountName(e.target.value)}
+                        placeholder="Cth: Budi Santoso"
+                        className="w-full bg-white border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary"
+                      />
+                    </div>
                   </div>
 
-                  {/* Option 3 */}
-                  <div className="border border-border-subtle rounded-xl p-4 flex flex-col justify-between hover:border-primary/50 transition-colors">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-text-secondary">E-Wallet 250rb</span>
-                        <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">2.500 Pts</span>
-                      </div>
-                      <div className="text-xl font-bold text-text-primary mb-1">Rp 250.000</div>
-                      <p className="text-[11px] text-text-secondary">Tambah saldo instan Rp 250.000 ke akun</p>
+                  {/* Step 3: Pilih Paket Nominal */}
+                  <div>
+                    <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-2">
+                      4. Pilih Nominal Penukaran Poin
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                      {[
+                        { points: 500, rupiah: 50000, label: '500 Poin' },
+                        { points: 1000, rupiah: 100000, label: '1.000 Poin' },
+                        { points: 2500, rupiah: 250000, label: '2.500 Poin' },
+                        { points: 5000, rupiah: 500000, label: '5.000 Poin' },
+                      ].map((pkg) => {
+                        const isSelected = selectedEwalletPackage.points === pkg.points;
+                        const isAffordable = (user.points || 0) >= pkg.points;
+                        return (
+                          <div
+                            key={pkg.points}
+                            onClick={() => setSelectedEwalletPackage(pkg)}
+                            className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                              isSelected
+                                ? 'bg-blue-50/60 border-primary ring-1 ring-primary shadow-xs'
+                                : 'bg-white border-border-subtle hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                                {pkg.label}
+                              </span>
+                              <input
+                                type="radio"
+                                name="ewallet_package"
+                                checked={isSelected}
+                                onChange={() => setSelectedEwalletPackage(pkg)}
+                                className="accent-primary cursor-pointer"
+                              />
+                            </div>
+                            <div className="text-lg font-extrabold text-text-primary">
+                              Rp {pkg.rupiah.toLocaleString('id-ID')}
+                            </div>
+                            <p className="text-[11px] text-text-secondary mt-0.5">
+                              {isAffordable ? 'Poin mencukupi' : 'Poin belum cukup'}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="text-xs text-text-secondary">
+                      Poin saat ini: <strong className="text-primary font-bold">{(user.points || 0).toLocaleString('id-ID')} Pts</strong> • Biaya penukaran: <strong className="text-amber-700 font-bold">{selectedEwalletPackage.points} Pts</strong>
                     </div>
                     <button
-                      onClick={() => handleRedeemWallet(2500, 250000)}
-                      disabled={(user.points || 0) < 2500}
-                      className="mt-4 w-full bg-primary hover:bg-primary-hover disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold py-2 rounded-lg transition-colors"
+                      type="submit"
+                      disabled={(user.points || 0) < selectedEwalletPackage.points}
+                      className="px-6 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5 self-start sm:self-auto"
                     >
-                      {(user.points || 0) >= 2500 ? 'Tukar 2.500 Poin' : 'Poin Kurang'}
+                      <span className="material-symbols-outlined text-[18px]">verified</span>
+                      Klaim Saldo {ewalletPlatform} Sekarang
                     </button>
                   </div>
+                </form>
+
+                {/* Status & Riwayat Klaim Saldo E-Wallet */}
+                <div className="pt-2 border-t border-border-subtle">
+                  <div className="flex items-center justify-between mb-4">
+                    <h5 className="font-bold text-sm text-text-primary flex items-center gap-2">
+                      <span className="material-symbols-outlined text-emerald-600 text-[20px]">history</span>
+                      Status & Riwayat Klaim Saldo E-Wallet
+                    </h5>
+                    <span className="text-xs text-text-secondary">
+                      {(user.ewalletClaims || []).length} transaksi
+                    </span>
+                  </div>
+
+                  {(user.ewalletClaims || []).length > 0 ? (
+                    <div className="space-y-3">
+                      {(user.ewalletClaims || []).map((cl) => (
+                        <div
+                          key={cl.id}
+                          className="p-4 rounded-xl border border-border-subtle bg-white hover:border-gray-300 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+                        >
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-bold text-xs font-mono text-primary bg-blue-50 px-2 py-0.5 rounded">
+                                {cl.id}
+                              </span>
+                              <span className="font-bold text-sm text-text-primary">
+                                {cl.platform} • {cl.accountName}
+                              </span>
+                              <span className="text-xs font-mono text-text-secondary">
+                                ({cl.phone})
+                              </span>
+                              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                                {cl.status || 'Berhasil Ditransfer'}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-text-secondary">
+                              Waktu: {cl.date} • No. Ref: <span className="font-mono">{cl.refNumber || 'TRX-8927163'}</span>
+                            </p>
+                          </div>
+
+                          <div className="sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 flex sm:flex-col justify-between items-baseline sm:items-end">
+                            <div className="text-base font-extrabold text-emerald-600">
+                              +Rp {(cl.amount || 0).toLocaleString('id-ID')}
+                            </div>
+                            <div className="text-[11px] font-bold text-amber-700">
+                              -{cl.points} Poin
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-text-secondary border-2 border-dashed border-border-subtle rounded-xl">
+                      <span className="material-symbols-outlined text-[36px] text-outline mb-1">receipt_long</span>
+                      <p className="text-xs font-medium">Belum ada riwayat penukaran e-wallet.</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1006,77 +1239,238 @@ export default function DashboardPage() {
           )}
 
           {/* TAB 6: ULASAN SAYA */}
-          {activeTab === 'reviews' && (
-            <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-text-primary mb-2 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">rate_review</span>
-                Ulasan Saya
-              </h3>
-              <p className="text-xs text-text-secondary mb-6">
-                Ulasan produk yang pernah Anda tulis.
-                {(user.reviewsPending || 0) > 0 && (
-                  <span className="ml-2 bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded">
-                    {user.reviewsPending} produk menunggu ulasan Anda
-                  </span>
-                )}
-              </p>
+          {activeTab === 'reviews' && (() => {
+            const pendingReviewItems = [];
+            (user.orders || []).forEach(order => {
+              (order.items || []).forEach((item, itemIdx) => {
+                const itemKey = `${order.id}_${item.name}`;
+                const isReviewed = (user.reviewedOrderItems || []).includes(itemKey) ||
+                  myReviews.some(r => r.orderId === order.id && r.productName === item.name);
+                if (!isReviewed) {
+                  pendingReviewItems.push({ order, item, itemKey, itemIdx });
+                }
+              });
+            });
 
-              {myReviews.length > 0 ? (
-                <div className="space-y-4">
-                  {myReviews.map(r => (
-                    <div key={r.id} className="border border-border-subtle rounded-xl p-4 flex gap-4">
-                      <div className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold flex-shrink-0">
-                        {r.userName.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="flex">
-                            {[1,2,3,4,5].map(s => (
-                              <span key={s} className="material-symbols-outlined text-[15px]"
-                                style={{ color: s <= r.rating ? '#f59e0b' : '#d1d5db', fontVariationSettings: s <= r.rating ? "'FILL' 1" : "'FILL' 0" }}>star</span>
-                            ))}
-                          </div>
-                          <span className="text-xs text-text-secondary">{r.date}</span>
-                        </div>
-                        <p className="text-sm text-text-secondary leading-relaxed">{r.comment}</p>
-                        <Link to={`/produk/`} className="mt-2 inline-block text-xs text-primary hover:underline">
-                          Lihat Produk
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-12 text-center text-text-secondary">
-                  <span className="material-symbols-outlined text-[48px] text-outline mb-2">rate_review</span>
-                  <p>Anda belum menulis ulasan produk apapun.</p>
-                  <Link to="/katalog" className="mt-4 inline-block text-xs font-semibold text-primary underline">
-                    Belanja & Ulas Produk
-                  </Link>
-                </div>
-              )}
-
-              {/* Pending reviews reminder */}
-              {(user.reviewsPending || 0) > 0 && (
-                <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-                  <span className="material-symbols-outlined text-amber-600 flex-shrink-0">info</span>
+            return (
+              <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-border-subtle">
                   <div>
-                    <p className="text-sm font-semibold text-amber-800">
-                      Ada {user.reviewsPending} pesanan yang belum Anda ulas.
+                    <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary">rate_review</span>
+                      Ulasan Produk Saya
+                    </h3>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      Berikan ulasan dan penilaian untuk setiap produk yang Anda beli untuk membantu pembeli lain dan raih <strong>+50 Poin</strong> per ulasan!
                     </p>
-                    <p className="text-xs text-amber-700 mt-0.5">
-                      Kunjungi halaman detail produk yang sudah Anda beli untuk menulis ulasan dan mendapatkan Poin Reward.
-                    </p>
-                    <Link to="/katalog" className="mt-2 inline-block text-xs font-bold text-amber-700 underline">
-                      Lihat Riwayat Pembelian →
-                    </Link>
+                  </div>
+
+                  {/* Sub-tabs: Menunggu Ulasan vs Riwayat Ulasan */}
+                  <div className="flex bg-surface p-1 rounded-xl border border-border-subtle self-start sm:self-auto shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setReviewSubTab('pending')}
+                      className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                        reviewSubTab === 'pending'
+                          ? 'bg-primary text-white shadow-2xs'
+                          : 'text-text-secondary hover:text-text-primary'
+                      }`}
+                    >
+                      <span>Menunggu Diulas</span>
+                      {pendingReviewItems.length > 0 && (
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                          reviewSubTab === 'pending' ? 'bg-white text-primary' : 'bg-amber-500 text-white'
+                        }`}>
+                          {pendingReviewItems.length}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReviewSubTab('completed')}
+                      className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                        reviewSubTab === 'completed'
+                          ? 'bg-primary text-white shadow-2xs'
+                          : 'text-text-secondary hover:text-text-primary'
+                      }`}
+                    >
+                      <span>Riwayat Ulasan</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                        reviewSubTab === 'completed' ? 'bg-white text-primary' : 'bg-gray-200 text-gray-700'
+                      }`}>
+                        {myReviews.length}
+                      </span>
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
+
+                {/* Sub-tab 1: Menunggu Diulas */}
+                {reviewSubTab === 'pending' && (
+                  <div>
+                    {pendingReviewItems.length > 0 ? (
+                      <div className="space-y-3.5">
+                        {pendingReviewItems.map(({ order, item, itemKey, itemIdx }) => (
+                          <div
+                            key={itemKey}
+                            className="p-4 rounded-xl border border-border-subtle bg-white hover:border-primary/50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs"
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-xs font-mono text-primary bg-blue-50 px-2 py-0.5 rounded">
+                                  #{order.id}
+                                </span>
+                                <span className="text-xs text-text-secondary">{order.date}</span>
+                                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-200">
+                                  {order.status}
+                                </span>
+                              </div>
+                              <h4 className="font-bold text-sm text-text-primary">{item.name}</h4>
+                              <p className="text-xs text-text-secondary">
+                                Kuantitas: {item.qty}x • Rp {(item.price || 0).toLocaleString('id-ID')}
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenReview({ name: item.name, id: `prod-${itemIdx + 1}` }, order)}
+                              className="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 shrink-0 cursor-pointer self-start sm:self-auto"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">rate_review</span>
+                              Tulis Ulasan (+50 Poin)
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="py-12 text-center text-text-secondary border-2 border-dashed border-border-subtle rounded-xl">
+                        <span className="material-symbols-outlined text-[48px] text-emerald-500 mb-2">task_alt</span>
+                        <p className="font-bold text-sm text-text-primary">Semua pesanan Anda sudah diulas!</p>
+                        <p className="text-xs text-text-secondary mt-1 mb-4">
+                          Terima kasih atas ulasan dan masukan Anda. Belanja lagi untuk mengumpulkan lebih banyak poin.
+                        </p>
+                        <Link
+                          to="/katalog"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-hover transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+                          Belanja Produk Baru
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Sub-tab 2: Riwayat Ulasan */}
+                {reviewSubTab === 'completed' && (
+                  <div>
+                    {myReviews.length > 0 ? (
+                      <div className="space-y-4">
+                        {myReviews.map((r) => (
+                          <div key={r.id} className="border border-border-subtle rounded-xl p-5 bg-white space-y-3 shadow-2xs">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">
+                                  {r.isAnonymous ? '?' : (r.userName?.charAt(0)?.toUpperCase() || 'U')}
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-sm text-text-primary">
+                                      {r.isAnonymous ? 'Pengguna Anonim' : r.userName}
+                                    </span>
+                                    {r.isAnonymous && (
+                                      <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.2 rounded">
+                                        Anonim
+                                      </span>
+                                    )}
+                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded border border-emerald-200">
+                                      ✓ Terverifikasi Pembeli
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-text-secondary flex items-center gap-2 mt-0.5">
+                                    <span>{r.date}</span>
+                                    {r.orderId && <span>• #{r.orderId}</span>}
+                                    {r.productName && <span>• <strong>{r.productName}</strong></span>}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <span
+                                    key={s}
+                                    className="material-symbols-outlined text-[16px]"
+                                    style={{
+                                      color: s <= r.rating ? '#f59e0b' : '#d1d5db',
+                                      fontVariationSettings: s <= r.rating ? "'FILL' 1" : "'FILL' 0",
+                                    }}
+                                  >
+                                    star
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+
+                            <p className="text-xs sm:text-sm text-text-primary leading-relaxed pl-12">
+                              {r.comment}
+                            </p>
+
+                            {/* Images if attached */}
+                            {r.images && r.images.length > 0 && (
+                              <div className="flex flex-wrap gap-2 pl-12">
+                                {r.images.map((img, idx) => (
+                                  <img
+                                    key={idx}
+                                    src={img}
+                                    alt={`Foto ${idx}`}
+                                    className="w-14 h-14 object-cover rounded-lg border border-border-subtle"
+                                  />
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Video if attached */}
+                            {r.video && (
+                              <div className="pl-12 max-w-xs">
+                                <video src={r.video} controls className="w-full max-h-32 rounded-lg bg-black object-contain" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="py-12 text-center text-text-secondary border-2 border-dashed border-border-subtle rounded-xl">
+                        <span className="material-symbols-outlined text-[48px] text-outline mb-2">rate_review</span>
+                        <p className="font-bold text-sm text-text-primary">Belum ada riwayat ulasan.</p>
+                        <p className="text-xs text-text-secondary mt-1">
+                          Pilih tab "Menunggu Diulas" di atas untuk mulai memberikan ulasan pesanan Anda.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </section>
       </div>
+
+      {/* INVOICE MODAL (FAKTUR PEMBELIAN) */}
+      <InvoiceModal
+        isOpen={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        order={selectedInvoiceOrder}
+        user={user}
+      />
+
+      {/* REVIEW MODAL (FORM ULASAN) */}
+      <ReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        product={reviewModalData?.product}
+        order={reviewModalData?.order}
+        user={user}
+        onSubmitReview={handleReviewSubmitted}
+      />
     </main>
   );
 }
