@@ -48,9 +48,12 @@ Didesain khusus untuk pasar B2B IT & Audio Visual dengan akumulasi nilai transak
 6. **Reward Ulasan Terverifikasi**: Bonus +50 Poin hanya diberikan untuk ulasan produk yang telah dibeli secara terverifikasi (dibatasi 1 ulasan per produk).
 
 ### C. Formula Perolehan & Penukaran Poin
-* **Perolehan Belanja**: 100 Poin untuk setiap transaksi kelipatan **Rp 1.000.000** (atau 1 Poin = Rp 10.000 belanja).
-* **Penukaran ke Saldo E-Wallet**: 1 Poin = Rp 100 nilai saldo (500 Pts = Rp 50.000, 1.000 Pts = Rp 100.000, dst ke GoPay, OVO, DANA, ShopeePay, LinkAja).
-* **Penukaran ke Voucher Diskon**: 600 Pts (Diskon 15%), 1.200 Pts (Potongan Rp 150rb), 2.000 Pts (Potongan Rp 300rb).
+* **Perolehan Belanja**: `floor(Nilai Belanja / Rp 10.000)` Poin (konsisten 1 Poin per Rp 10.000 belanja tanpa pembulatan kasar per kelipatan juta).
+* **Penukaran ke Saldo E-Wallet**: 1 Poin = Rp 100 nilai saldo (500 Pts = Rp 50.000, 1.000 Pts = Rp 100.000, 2.500 Pts = Rp 250.000, 5.000 Pts = Rp 500.000). Dibatasi 1x per 30 hari untuk akun terverifikasi guna mitigasi risiko *cash-out*.
+* **Penukaran ke Voucher Diskon (Rasio 1:1)**:
+  * **500 Poin** $\rightarrow$ Voucher Potongan Rp 50.000 (Min. order Rp 500.000)
+  * **1.500 Poin** $\rightarrow$ Voucher Potongan Rp 150.000 (Min. order Rp 1.500.000)
+  * **3.000 Poin** $\rightarrow$ Voucher Potongan Rp 300.000 (Min. order Rp 3.000.000)
 * **Progress Bar di Dashboard**: Menampilkan kalkulasi sisa belanja secara realtime: *"Kurang Rp X lagi untuk naik ke level Y"*.
 
 ---

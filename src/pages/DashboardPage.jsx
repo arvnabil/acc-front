@@ -1287,7 +1287,7 @@ export default function DashboardPage() {
 
                         <div className="text-white/70 text-[10px] pt-1 flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[15px] text-amber-300">lightbulb</span>
-                          <span>Formula: Belanja Rp 1.000.000 = 100 Poin (1 Pts = Rp 10.000 belanja). Nilai penukaran: 1 Pts = Rp 100 nilai saldo e-wallet.</span>
+                          <span>Formula: Belanja Rp 10.000 = 1 Poin (floor(belanja / 10.000)). Nilai penukaran: 1 Pts = Rp 100 nilai saldo e-wallet & voucher.</span>
                         </div>
                       </div>
                     )}
@@ -1494,6 +1494,9 @@ export default function DashboardPage() {
                       <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="text-xs text-text-secondary">
                           Poin saat ini: <strong className="text-primary font-bold">{(user.points || 0).toLocaleString('id-ID')} Pts</strong> • Biaya penukaran: <strong className="text-amber-700 font-bold">{selectedEwalletPackage.points} Pts</strong>
+                          <p className="text-[10px] text-text-secondary/80 mt-1 flex items-center gap-1">
+                            <span>🛡️ Batas cash-out: Maks. 1x per 30 hari (plafon s/d Rp 500.000) untuk akun terverifikasi.</span>
+                          </p>
                         </div>
                         <button
                           type="submit"
@@ -1567,66 +1570,94 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Sub-section 2: Tukar Poin ke Voucher Potongan */}
+              {/* Sub-section 2: Tukar Poin ke Voucher Potongan Belanja (Rasio 1:1) */}
               <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-sm">
                 <div className="mb-4">
                   <h4 className="text-base font-bold text-text-primary flex items-center gap-2">
                     <span className="material-symbols-outlined text-amber-600">confirmation_number</span>
-                    Tukar Poin Jadi Voucher Potongan Diskon
+                    Tukar Poin Jadi Voucher Potongan Belanja (Rasio 1:1)
                   </h4>
-                  <p className="text-xs text-text-secondary mt-0.5">Voucher akan langsung masuk ke daftar Voucher Aktif Anda.</p>
+                  <p className="text-xs text-text-secondary mt-0.5">
+                    Nilai potongan 1:1 setara dengan nilai poin (1 Poin = Rp 100). Tanpa batasan kuota penarikan bulanan & langsung masuk ke tab Voucher & Promo.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Voucher 1 */}
-                  <div className="border border-border-subtle rounded-xl p-4 bg-orange-50/40 flex flex-col justify-between">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Voucher 1: 500 Poin -> Rp 50.000 */}
+                  <div className="border border-border-subtle rounded-xl p-4 bg-amber-50/40 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">VOUCHER 75K</span>
-                        <span className="text-xs font-bold text-amber-700">600 Pts</span>
+                        <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">VOUCHER 50K</span>
+                        <span className="text-xs font-bold text-amber-700">500 Pts</span>
                       </div>
-                      <h5 className="font-bold text-text-primary text-sm">Potongan Rp 75.000 Khusus IT Solutions</h5>
-                      <p className="text-xs text-text-secondary mt-1">Min. belanja Rp 750.000 • Berlaku 30 Hari</p>
+                      <h5 className="font-bold text-text-primary text-sm">Potongan Rp 50.000 Aksesori & Hardware</h5>
+                      <p className="text-xs text-text-secondary mt-1">Min. belanja Rp 500.000 • Berlaku 30 Hari</p>
                     </div>
                     <button
-                      onClick={() => handleRedeemVoucher(600, {
+                      onClick={() => handleRedeemVoucher(500, {
                         id: `VCH-${Date.now()}`,
-                        code: `IT75K-${Math.floor(1000 + Math.random() * 9000)}`,
-                        title: 'Voucher Potongan Rp 75.000 IT Solution',
-                        minOrder: 750000,
-                        discount: 75000,
+                        code: `ACC50K-${Math.floor(1000 + Math.random() * 9000)}`,
+                        title: 'Voucher Potongan Rp 50.000 Aksesori & Hardware',
+                        minOrder: 500000,
+                        discount: 50000,
                         expiry: '30 Hari ke depan'
                       })}
-                      disabled={(user.points || 0) < 600}
-                      className="mt-4 w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold py-2 rounded-lg transition-colors"
+                      disabled={(user.points || 0) < 500}
+                      className="mt-4 w-full bg-amber-600 hover:bg-amber-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer"
                     >
-                      {(user.points || 0) >= 600 ? 'Tukar 600 Poin' : 'Poin Kurang'}
+                      {(user.points || 0) >= 500 ? 'Tukar 500 Poin' : 'Poin Kurang'}
                     </button>
                   </div>
 
-                  {/* Voucher 2 */}
+                  {/* Voucher 2: 1.500 Poin -> Rp 150.000 */}
                   <div className="border border-border-subtle rounded-xl p-4 bg-blue-50/40 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-bold text-primary bg-blue-100 px-2 py-0.5 rounded">VOUCHER 150K</span>
-                        <span className="text-xs font-bold text-amber-700">1.200 Pts</span>
+                        <span className="text-xs font-bold text-amber-700">1.500 Pts</span>
                       </div>
-                      <h5 className="font-bold text-text-primary text-sm">Diskon Rp 150.000 Paket Video Conference</h5>
+                      <h5 className="font-bold text-text-primary text-sm">Potongan Rp 150.000 Audio Visual & IT</h5>
                       <p className="text-xs text-text-secondary mt-1">Min. belanja Rp 1.500.000 • Berlaku 30 Hari</p>
                     </div>
                     <button
-                      onClick={() => handleRedeemVoucher(1200, {
+                      onClick={() => handleRedeemVoucher(1500, {
                         id: `VCH-${Date.now()}`,
-                        code: `VC150K-${Math.floor(1000 + Math.random() * 9000)}`,
-                        title: 'Diskon Rp 150.000 Video Conference',
+                        code: `AV150K-${Math.floor(1000 + Math.random() * 9000)}`,
+                        title: 'Voucher Potongan Rp 150.000 Audio Visual & IT',
                         minOrder: 1500000,
                         discount: 150000,
                         expiry: '30 Hari ke depan'
                       })}
-                      disabled={(user.points || 0) < 1200}
-                      className="mt-4 w-full bg-primary hover:bg-primary-hover disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold py-2 rounded-lg transition-colors"
+                      disabled={(user.points || 0) < 1500}
+                      className="mt-4 w-full bg-primary hover:bg-primary-hover disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer"
                     >
-                      {(user.points || 0) >= 1200 ? 'Tukar 1.200 Poin' : 'Poin Kurang'}
+                      {(user.points || 0) >= 1500 ? 'Tukar 1.500 Poin' : 'Poin Kurang'}
+                    </button>
+                  </div>
+
+                  {/* Voucher 3: 3.000 Poin -> Rp 300.000 */}
+                  <div className="border border-border-subtle rounded-xl p-4 bg-purple-50/40 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">VOUCHER 300K</span>
+                        <span className="text-xs font-bold text-amber-700">3.000 Pts</span>
+                      </div>
+                      <h5 className="font-bold text-text-primary text-sm">Potongan Rp 300.000 Solusi Enterprise</h5>
+                      <p className="text-xs text-text-secondary mt-1">Min. belanja Rp 3.000.000 • Berlaku 30 Hari</p>
+                    </div>
+                    <button
+                      onClick={() => handleRedeemVoucher(3000, {
+                        id: `VCH-${Date.now()}`,
+                        code: `ENT300K-${Math.floor(1000 + Math.random() * 9000)}`,
+                        title: 'Voucher Potongan Rp 300.000 Solusi Enterprise',
+                        minOrder: 3000000,
+                        discount: 300000,
+                        expiry: '30 Hari ke depan'
+                      })}
+                      disabled={(user.points || 0) < 3000}
+                      className="mt-4 w-full bg-purple-700 hover:bg-purple-800 disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer"
+                    >
+                      {(user.points || 0) >= 3000 ? 'Tukar 3.000 Poin' : 'Poin Kurang'}
                     </button>
                   </div>
                 </div>
