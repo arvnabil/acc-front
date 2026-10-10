@@ -860,7 +860,7 @@ export default function ProductDetailPage() {
               {/* Badges row */}
               <div className="flex items-center flex-wrap gap-2">
                 {isFlashSale && (
-                  <span className="bg-[#ee4d2d] text-white text-[11px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
+                  <span className="bg-gradient-to-r from-red-600 via-rose-600 to-red-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
                     <span className="material-symbols-outlined text-[13px]">local_fire_department</span>
                     Flash Sale
                   </span>

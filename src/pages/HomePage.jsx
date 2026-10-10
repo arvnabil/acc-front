@@ -382,7 +382,7 @@ export default function HomePage({ featuredProducts: propFeatured, saleProducts:
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-space-lg">
             <div className="flex items-center justify-between sm:justify-start gap-3">
-              <div className="flex items-center gap-2 bg-red-500 text-white px-3 py-1.5 rounded-lg">
+              <div className="flex items-center gap-2 bg-gradient-to-r from-red-600 via-rose-600 to-red-500 text-white px-3 py-1.5 rounded-lg shadow-sm">
                 <span className="material-symbols-outlined text-[18px] animate-pulse">local_fire_department</span>
                 <span className="font-bold text-[14px] tracking-wide uppercase">Flash Sale</span>
               </div>
