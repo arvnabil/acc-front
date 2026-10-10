@@ -80,7 +80,7 @@ const BANKS = [
 
 export default function CheckoutPage() {
   const { items, total, itemCount, clearCart, appliedPromo, setAppliedPromo } = useCart();
-  const { user } = useAuth();
+  const { user, addPoints } = useAuth();
   const navigate = useNavigate();
 
   // Steps: 'checkout' (2) -> 'payment' (3) -> 'success' (4)
@@ -129,6 +129,7 @@ export default function CheckoutPage() {
   }
 
   const grandTotal = Math.max(0, subtotal + ppn + shippingCost + adminFee - discountAmount);
+  const earnedPoints = Math.floor(grandTotal / 10000);
 
   // Apply promo
   const handleApplyPromo = (codeToApply) => {
@@ -156,6 +157,9 @@ export default function CheckoutPage() {
   };
 
   const handleFinishPayment = () => {
+    if (earnedPoints > 0 && addPoints) {
+      addPoints(earnedPoints);
+    }
     setCurrentStep('success');
     clearCart();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -238,6 +242,26 @@ export default function CheckoutPage() {
               <div className="flex justify-between"><span className="text-text-secondary">Kirim ke</span><span className="font-semibold text-right max-w-[60%] line-clamp-1">{formData.address}</span></div>
             </div>
           </div>
+
+          {/* Tokopedia-style Points Reward Earned Card */}
+          {earnedPoints > 0 && (
+            <div className="bg-gradient-to-r from-amber-50 via-amber-100/40 to-orange-50 border border-amber-300/80 rounded-xl p-4 mb-space-xl flex items-center justify-between gap-3 text-left max-w-[520px] mx-auto shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-md flex-shrink-0">
+                  <span className="material-symbols-outlined text-[24px]">stars</span>
+                </div>
+                <div>
+                  <div className="text-[13px] font-bold text-amber-950">🎉 Selamat! +{earnedPoints.toLocaleString('id-ID')} Poin Didapatkan</div>
+                  <div className="text-[11px] text-amber-800/90">
+                    Poin Reward telah ditambahkan ke akun Anda!
+                  </div>
+                </div>
+              </div>
+              <Link to="/akun" className="text-[11px] font-bold text-amber-950 bg-amber-200/90 hover:bg-amber-300 px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors flex-shrink-0">
+                Tukar Poin
+              </Link>
+            </div>
+          )}
 
           {/* What's next */}
           <div className="max-w-[520px] mx-auto mb-space-xl text-left">
@@ -968,6 +992,16 @@ export default function CheckoutPage() {
                     {formatPrice(grandTotal)}
                   </span>
                 </div>
+
+                {earnedPoints > 0 && (
+                  <div className="mt-1 bg-amber-50 border border-amber-200/80 rounded-lg p-2.5 flex items-center justify-between gap-2 text-[12px]">
+                    <div className="flex items-center gap-1.5 text-amber-900 font-medium">
+                      <span className="material-symbols-outlined text-[17px] text-amber-600 animate-pulse">stars</span>
+                      <span>Estimasi Poin Didapat:</span>
+                    </div>
+                    <span className="font-bold text-amber-800 font-mono text-[13px]">+{earnedPoints.toLocaleString('id-ID')} Poin</span>
+                  </div>
+                )}
               </div>
 
               <button

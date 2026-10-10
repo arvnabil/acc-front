@@ -126,6 +126,13 @@ export function AuthProvider({ children }) {
     return true;
   }
 
+  function addPoints(earnedPoints) {
+    if (!user || earnedPoints <= 0) return;
+    updateUser({
+      points: (user.points || 0) + earnedPoints
+    });
+  }
+
   function logout() {
     setUser(null);
     localStorage.removeItem('accommerce_user');
@@ -137,6 +144,7 @@ export function AuthProvider({ children }) {
       login, 
       logout, 
       updateUser, 
+      addPoints,
       redeemPointsForWallet, 
       redeemPointsForVoucher 
     }}>

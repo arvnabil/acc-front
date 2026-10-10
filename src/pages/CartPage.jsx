@@ -61,6 +61,7 @@ export default function CartPage() {
   }
 
   const grandTotal = Math.max(0, total + SHIPPING_BASE - discountAmount);
+  const earnedPoints = Math.floor(grandTotal / 10000);
 
   if (items.length === 0) {
     return (
@@ -266,6 +267,16 @@ export default function CartPage() {
                   {formatPrice(grandTotal)}
                 </span>
               </div>
+
+              {earnedPoints > 0 && (
+                <div className="mt-1 bg-amber-50 border border-amber-200/80 rounded-lg p-2.5 flex items-center justify-between gap-2 text-[12px]">
+                  <div className="flex items-center gap-1.5 text-amber-900 font-medium">
+                    <span className="material-symbols-outlined text-[17px] text-amber-600 animate-pulse">stars</span>
+                    <span>Potensi Poin Reward:</span>
+                  </div>
+                  <span className="font-bold text-amber-800 font-mono text-[13px]">+{earnedPoints.toLocaleString('id-ID')} Poin</span>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-space-md">
