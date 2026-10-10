@@ -21,35 +21,37 @@ Dokumen ini merangkum seluruh fitur, fungsionalitas, dan modul yang telah diimpl
 
 ---
 
-## 1. 🌟 Sistem Loyalitas, Poin & Reward (Accommerce Points)
+## 1. 🌟 Sistem Loyalitas, Poin & Tier Membership (Accommerce Points)
 
-Fitur gamifikasi loyalitas yang memberikan reward untuk setiap pembelian perangkat IT & AV:
+Fitur gamifikasi loyalitas dan tier enterprise B2B yang memberikan reward dan fasilitas khusus untuk setiap pembelian perangkat IT & AV:
 
-### A. Perolehan Poin (Earn Points)
-* **Estimasi Poin di Halaman Produk**: Pada setiap halaman detail produk terdapat penanda reward:
-  > *"Dapatkan hingga **X Poin**"* (dihitung proporsional berdasarkan nilai transaksi).
-* **Formula Perolehan**: Dapatkan **100 Poin** untuk setiap transaksi kelipatan **Rp 1.000.000**.
-* **Penyimpanan Terpadu**: Poin terakumulasi otomatis ke dalam akun profil member.
+### A. 6 Tingkatan Tier Member & Threshold
+Didesain khusus untuk pasar B2B IT & Audio Visual dengan akumulasi nilai transaksi realistis:
 
-### B. Penukaran Poin ke Saldo E-Wallet (Redeem to Wallet)
-Pengguna dapat mengonversi poin loyalitas menjadi saldo uang belanja nyata:
-| Poin Dibutuhkan | Saldo E-Wallet Didapat | Nilai Konversi |
-| :--- | :--- | :--- |
-| **500 Poin** | **Rp 50.000** | 1 Poin = Rp 100 |
-| **1.000 Poin** | **Rp 100.000** | 1 Poin = Rp 100 |
-| **2.500 Poin** | **Rp 250.000** | 1 Poin = Rp 100 |
+| Level | Rentang Poin Tier | Estimasi Akumulasi Belanja | Warna Tema | Keuntungan Utama (Perks) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Classic** 🔰 | `0 – 499 Pts` | Rp 0 – Rp 4,99 Juta | Neutral Slate/Zinc | Akun terverifikasi, katalog enterprise, +50 Poin ulasan terverifikasi, Faktur Pajak PKP |
+| **Bronze** 🥉 | `500 – 1.499 Pts` | Rp 5 Juta – Rp 14,9 Juta | Warm Bronze/Copper | Semua benefit Classic, Voucher potongan Rp 25.000 / diskon aksesori, Gratis ongkir 1x/bulan |
+| **Silver** 🥈 | `1.500 – 7.499 Pts` | Rp 15 Juta – Rp 74,9 Juta | Metallic Silver | Semua benefit Bronze, Bonus 5% Poin belanja, Gratis ongkir 2x/bulan, Konsultasi teknis AV |
+| **Gold** 🥇 | `7.500 – 14.999 Pts` | Rp 75 Juta – Rp 149,9 Juta | Luxury Gold | Semua benefit Silver, Harga khusus proyek B2B (*Project Pricing*), Prioritas alokasi stok, Gratis ongkir 4x/bln, Bonus 10% Poin |
+| **Platinum** 💎 | `15.000 – 39.999 Pts` | Rp 150 Juta – Rp 399,9 Juta | Royal Violet & Indigo | Semua benefit Gold, Dedicated Account Manager B2B, Termin pembayaran B2B (NET 14 Hari), Prioritas garansi & RMA Express, Bonus 20% Poin |
+| **Diamond** 👑 | `≥ 40.000 Pts` | ≥ Rp 400 Juta | Brilliant Cyan & Deep Ocean | **Top Executive Tier**: Termin pembayaran B2B (NET 30 Hari), Prioritas pengiriman instan same-day, Hotline 24/7 & asistensi instalasi on-site, Bonus 30% Poin, Hadiah corporate anniversary |
 
-*Saldo E-Wallet yang ditukarkan langsung masuk ke saldo akun pengguna dan dapat digunakan untuk pembelanjaan berikutnya.*
+### B. 6 Aturan & Kebijakan Sistem Loyalitas
+1. **Periode Kualifikasi Tier**: Dihitung berdasarkan tahun kalender (1 Jan – 31 Des). Status tier aktif berlaku hingga akhir tahun kalender berikutnya. Penurunan tier dibatasi maksimal 1 tingkat per tahun; kenaikan tier langsung aktif saat threshold tercapai.
+2. **Pemisahan Poin**:
+   - **Poin Tier**: Akumulasi poin belanja tahun kalender berjalan untuk menentukan kenaikan/pemeliharaan tier member.
+   - **Saldo Poin**: Poin reward yang dapat ditukarkan ke e-wallet atau voucher promo, berlaku 12–24 bulan sejak perolehan.
+3. **Faktur Pajak PKP Terbuka untuk Semua**: Faktur Pajak resmi dan e-Faktur diberikan kepada semua member terverifikasi yang melampirkan NPWP & SPPKP perusahaan, tanpa batasan level tier.
+4. **Perk Khusus Bronze**: Mengingat margin produk hardware IT tipis, Bronze mendapatkan voucher potongan nominal tetap (Rp 25.000) atau diskon khusus kategori aksesori/kabel/mounting.
+5. **Fasilitas B2B Enterprise (Gold, Platinum, Diamond)**: Fasilitas Project Pricing, alokasi stok prioritas, termin pembayaran bertempo (NET 14 / NET 30 hari), serta garansi & penggantian unit RMA Express.
+6. **Reward Ulasan Terverifikasi**: Bonus +50 Poin hanya diberikan untuk ulasan produk yang telah dibeli secara terverifikasi (dibatasi 1 ulasan per produk).
 
-### C. Penukaran Poin ke Voucher Diskon Spesial
-Pengguna juga dapat menukarkan poin dengan kupon potongan harga eksklusif:
-| Poin Dibutuhkan | Voucher Reward | Ketentuan / Minimal Belanja |
-| :--- | :--- | :--- |
-| **600 Poin** | **Diskon 15% Ekstra** | Tanpa minimum belanja (Maks. potongan Rp 150.000) |
-| **1.200 Poin** | **Potongan Rp 150.000** | Minimum belanja Rp 1.500.000 |
-| **2.000 Poin** | **Potongan Rp 300.000** | Minimum belanja Rp 3.000.000 |
-
-*Voucher yang ditukarkan langsung otomatis terdaftar di tab **Voucher & Promo** pada Dashboard Akun.*
+### C. Formula Perolehan & Penukaran Poin
+* **Perolehan Belanja**: 100 Poin untuk setiap transaksi kelipatan **Rp 1.000.000** (atau 1 Poin = Rp 10.000 belanja).
+* **Penukaran ke Saldo E-Wallet**: 1 Poin = Rp 100 nilai saldo (500 Pts = Rp 50.000, 1.000 Pts = Rp 100.000, dst ke GoPay, OVO, DANA, ShopeePay, LinkAja).
+* **Penukaran ke Voucher Diskon**: 600 Pts (Diskon 15%), 1.200 Pts (Potongan Rp 150rb), 2.000 Pts (Potongan Rp 300rb).
+* **Progress Bar di Dashboard**: Menampilkan kalkulasi sisa belanja secara realtime: *"Kurang Rp X lagi untuk naik ke level Y"*.
 
 ---
 

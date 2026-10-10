@@ -19,6 +19,7 @@ export function AuthProvider({ children }) {
           memberSince: parsed.memberSince || '2024',
           walletBalance: parsed.walletBalance ?? 1500000,
           points: parsed.points ?? 2450,
+          tierPoints: parsed.tierPoints ?? 16800,
           vouchers: parsed.vouchers || [
             { id: 'VCH-1', code: 'DISKON50K', title: 'Voucher Potongan Rp 50.000', minOrder: 500000, discount: 50000, expiry: '31 Des 2026' },
             { id: 'VCH-2', code: 'GRATISONGKIR', title: 'Gratis Ongkir s/d Rp 100.000', minOrder: 1000000, discount: 100000, expiry: '15 Jan 2027' },
@@ -119,6 +120,7 @@ export function AuthProvider({ children }) {
       memberSince: userData.memberSince || '2024',
       walletBalance: userData.walletBalance ?? 1500000,
       points: userData.points ?? 2450,
+      tierPoints: userData.tierPoints ?? 16800,
       vouchers: userData.vouchers || [
         { id: 'VCH-1', code: 'DISKON50K', title: 'Voucher Potongan Rp 50.000', minOrder: 500000, discount: 50000, expiry: '31 Des 2026' },
         { id: 'VCH-2', code: 'GRATISONGKIR', title: 'Gratis Ongkir s/d Rp 100.000', minOrder: 1000000, discount: 100000, expiry: '15 Jan 2027' },

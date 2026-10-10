@@ -50,46 +50,137 @@ export default function DashboardPage() {
   const [showLoyaltyInfo, setShowLoyaltyInfo] = useState(false);
   const LOYALTY_LEVELS = [
     { 
+      id: 'classic',   
+      label: 'Classic',   
+      minPoints: 0,     
+      maxPoints: 499,  
+      color: 'from-slate-600 via-slate-700 to-zinc-800',    
+      badgeBg: 'bg-slate-600', 
+      textColor: 'text-slate-200', 
+      icon: '🔰',
+      spendMin: 0,
+      spendMax: 4990000,
+      perks: [
+        'Akun member terverifikasi & katalog lengkap',
+        'Bonus 50 Poin per ulasan pembelian terverifikasi',
+        'Faktur Pajak PKP (bagi member ber-NPWP/SPPKP)',
+        'Akses promo reguler Accommerce'
+      ] 
+    },
+    { 
+      id: 'bronze',     
+      label: 'Bronze',     
+      minPoints: 500,  
+      maxPoints: 1499, 
+      color: 'from-amber-800 via-amber-900 to-stone-900',   
+      badgeBg: 'bg-amber-800', 
+      textColor: 'text-amber-200', 
+      icon: '🥉', 
+      spendMin: 5000000,
+      spendMax: 14990000,
+      perks: [
+        'Semua benefit Classic',
+        'Voucher potongan Rp 25.000 / diskon khusus aksesori',
+        'Gratis ongkir 1x/bulan (s/d Rp 30.000)',
+        'Pengiriman pesanan prioritas reguler'
+      ] 
+    },
+    { 
       id: 'silver',   
       label: 'Silver',   
-      minPoints: 0,     
-      maxPoints: 4999,  
-      color: 'from-slate-600 via-slate-700 to-zinc-800',    
+      minPoints: 1500,     
+      maxPoints: 7499,  
+      color: 'from-slate-400 via-slate-500 to-gray-600',    
       badgeBg: 'bg-slate-500', 
-      textColor: 'text-slate-200', 
-      icon: '⭐',  
-      perks: ['Akses produk reguler', '50 Poin per ulasan', 'Voucher member bulanan'] 
+      textColor: 'text-slate-100', 
+      icon: '🥈',  
+      spendMin: 15000000,
+      spendMax: 74990000,
+      perks: [
+        'Semua benefit Bronze',
+        'Bonus 5% Poin belanja per order',
+        'Gratis ongkir 2x/bulan (s/d Rp 50.000)',
+        'Layanan konsultasi teknis audio visual'
+      ] 
     },
     { 
       id: 'gold',     
       label: 'Gold',     
-      minPoints: 5000,  
-      maxPoints: 19999, 
-      color: 'from-amber-500 via-amber-600 to-yellow-600',   
+      minPoints: 7500,  
+      maxPoints: 14999, 
+      color: 'from-amber-400 via-amber-500 to-yellow-600',   
       badgeBg: 'bg-amber-500', 
       textColor: 'text-amber-100', 
-      icon: '🌟', 
-      perks: ['Semua benefit Silver', 'Bonus 10% Poin per order', 'Gratis ongkir 2x/bulan', 'Akses Flash Sale eksklusif'] 
+      icon: '🥇', 
+      spendMin: 75000000,
+      spendMax: 149990000,
+      perks: [
+        'Semua benefit Silver',
+        'Harga khusus proyek B2B (Project Pricing)',
+        'Prioritas alokasi stok hardware IT & AV',
+        'Gratis ongkir 4x/bulan & Flash Sale VIP',
+        'Bonus 10% Poin belanja per order'
+      ] 
     },
     { 
       id: 'platinum', 
       label: 'Platinum', 
-      minPoints: 20000, 
-      maxPoints: null,  
+      minPoints: 15000, 
+      maxPoints: 39999,  
       color: 'from-violet-700 via-purple-800 to-indigo-900',  
       badgeBg: 'bg-violet-700', 
       textColor: 'text-violet-200', 
       icon: '💎', 
-      perks: ['Semua benefit Gold', 'Bonus 25% Poin per order', 'Dedicated Account Manager', 'Invoice & Faktur Pajak PKP', 'Early Access produk baru'] 
+      spendMin: 150000000,
+      spendMax: 399990000,
+      perks: [
+        'Semua benefit Gold',
+        'Dedicated Account Manager B2B',
+        'Termin pembayaran B2B (NET 14 Hari)',
+        'Dukungan garansi & RMA express prioritas',
+        'Bonus 20% Poin belanja per order'
+      ] 
+    },
+    { 
+      id: 'diamond', 
+      label: 'Diamond', 
+      minPoints: 40000, 
+      maxPoints: null,  
+      color: 'from-cyan-500 via-blue-600 to-indigo-950',  
+      badgeBg: 'bg-cyan-600', 
+      textColor: 'text-cyan-100', 
+      icon: '👑', 
+      spendMin: 400000000,
+      spendMax: null,
+      perks: [
+        'Semua benefit Platinum (Top Executive Tier)',
+        'Termin pembayaran B2B (NET 30 Hari)',
+        'Prioritas pengiriman instan same-day',
+        'Hotline teknis 24/7 & asistensi instalasi on-site',
+        'Bonus 30% Poin belanja per order',
+        'Hadiah corporate anniversary eksklusif'
+      ] 
     },
   ];
-  const currentPoints = user?.points || 0;
+  const currentPoints = user?.points || 0; // Saldo poin yang dapat ditukar
+  const tierPoints = user?.tierPoints ?? user?.points ?? 0; // Poin kualifikasi tier tahun berjalan
   const tierLower = (user?.memberTier || '').toLowerCase();
-  const currentLevelIndex = tierLower.includes('platinum') || currentPoints >= 20000 
-    ? 2 
-    : tierLower.includes('gold') || currentPoints >= 5000 
-      ? 1 
-      : 0;
+
+  let currentLevelIndex = 0;
+  if (tierLower.includes('diamond') || tierPoints >= 40000) {
+    currentLevelIndex = 5;
+  } else if (tierLower.includes('platinum') || tierPoints >= 15000) {
+    currentLevelIndex = 4;
+  } else if (tierLower.includes('gold') || tierPoints >= 7500) {
+    currentLevelIndex = 3;
+  } else if (tierLower.includes('silver') || tierPoints >= 1500) {
+    currentLevelIndex = 2;
+  } else if (tierLower.includes('bronze') || tierPoints >= 500) {
+    currentLevelIndex = 1;
+  } else {
+    currentLevelIndex = 0;
+  }
+
   const [activeLoyaltyIdx, setActiveLoyaltyIdx] = useState(currentLevelIndex);
 
   useEffect(() => {
@@ -938,26 +1029,41 @@ export default function DashboardPage() {
               {(() => {
                 const activeLevel = LOYALTY_LEVELS[activeLoyaltyIdx];
                 const isCurrentLevel = activeLoyaltyIdx === currentLevelIndex;
-                const progressPct = activeLevel.maxPoints
-                  ? Math.min(100, Math.round(((currentPoints - activeLevel.minPoints) / (activeLevel.maxPoints - activeLevel.minPoints + 1)) * 100))
-                  : 100;
+                const nextLevel = currentLevelIndex < LOYALTY_LEVELS.length - 1 ? LOYALTY_LEVELS[currentLevelIndex + 1] : null;
+
+                // Progress calculation towards next tier
+                let pointsNeeded = 0;
+                let rupiahNeeded = 0;
+                let progressPct = 100;
+                if (nextLevel) {
+                  pointsNeeded = Math.max(0, nextLevel.minPoints - tierPoints);
+                  rupiahNeeded = pointsNeeded * 10000; // 1 Poin = Rp 10.000 belanja
+                  const rangeTotal = nextLevel.minPoints - LOYALTY_LEVELS[currentLevelIndex].minPoints;
+                  const currentInRange = Math.max(0, tierPoints - LOYALTY_LEVELS[currentLevelIndex].minPoints);
+                  progressPct = Math.min(100, Math.max(0, Math.round((currentInRange / rangeTotal) * 100)));
+                }
+
+                // If viewing a locked future level
+                const targetPointsNeeded = Math.max(0, activeLevel.minPoints - tierPoints);
+                const targetRupiahNeeded = targetPointsNeeded * 10000;
+
                 return (
                   <div className={`bg-gradient-to-br ${activeLevel.color} text-white rounded-2xl shadow-md overflow-hidden transition-all duration-300`}>
                     {/* Level Carousel Header & Tabs with Slide Controls */}
-                    <div className="flex items-center border-b border-white/20 bg-black/10">
+                    <div className="flex items-center border-b border-white/20 bg-black/15">
                       {/* Prev Button */}
                       <button
                         type="button"
                         onClick={() => setActiveLoyaltyIdx(prev => Math.max(0, prev - 1))}
                         disabled={activeLoyaltyIdx === 0}
-                        className="px-3 py-2.5 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                        className="px-2.5 sm:px-3 py-2.5 text-white/70 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center shrink-0"
                         title="Level Sebelumnya"
                       >
-                        <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                        <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                       </button>
 
-                      {/* Level Tabs */}
-                      <div className="flex-1 flex overflow-x-auto scrollbar-none">
+                      {/* Level Tabs (6 Tiers) */}
+                      <div className="flex-1 flex overflow-x-auto scrollbar-none py-1">
                         {LOYALTY_LEVELS.map((lv, idx) => {
                           const isCurrent = idx === currentLevelIndex;
                           const isAchieved = idx < currentLevelIndex;
@@ -968,27 +1074,27 @@ export default function DashboardPage() {
                               key={lv.id}
                               type="button"
                               onClick={() => setActiveLoyaltyIdx(idx)}
-                              className={`flex-1 py-2.5 px-2 text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                              className={`flex-1 min-w-[95px] sm:min-w-0 py-2 px-1.5 text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap rounded-lg mx-0.5 ${
                                 isSelected
-                                  ? 'bg-white/25 text-white shadow-inner border-b-2 border-white'
-                                  : 'text-white/60 hover:text-white/90 hover:bg-white/10'
+                                  ? 'bg-white/25 text-white shadow-inner font-extrabold'
+                                  : 'text-white/60 hover:text-white/95 hover:bg-white/10'
                               }`}
                             >
-                              <span>{lv.icon}</span>
+                              <span className="text-[13px]">{lv.icon}</span>
                               <span>{lv.label}</span>
                               {isCurrent && (
-                                <span className="text-[9px] bg-emerald-500/80 text-white font-semibold px-1.5 py-0.5 rounded-full ml-0.5">
-                                  Level Anda
+                                <span className="text-[9px] bg-emerald-500 text-white font-bold px-1.5 py-0.2 rounded-full ml-0.5">
+                                  Anda
                                 </span>
                               )}
                               {isAchieved && (
-                                <span className="text-[9px] bg-white/20 text-white/80 px-1 py-0.5 rounded ml-0.5 hidden sm:inline">
-                                  ✓ Tercapai
+                                <span className="text-[9px] bg-white/20 text-white/90 px-1 py-0.2 rounded ml-0.5 hidden md:inline">
+                                  ✓
                                 </span>
                               )}
                               {isLocked && (
-                                <span className="text-[9px] bg-black/20 text-white/60 px-1 py-0.5 rounded ml-0.5 hidden sm:inline">
-                                  🔒 Terkunci
+                                <span className="text-[9px] bg-black/25 text-white/50 px-1 py-0.2 rounded ml-0.5 hidden md:inline">
+                                  🔒
                                 </span>
                               )}
                             </button>
@@ -1001,90 +1107,130 @@ export default function DashboardPage() {
                         type="button"
                         onClick={() => setActiveLoyaltyIdx(prev => Math.min(LOYALTY_LEVELS.length - 1, prev + 1))}
                         disabled={activeLoyaltyIdx === LOYALTY_LEVELS.length - 1}
-                        className="px-3 py-2.5 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                        className="px-2.5 sm:px-3 py-2.5 text-white/70 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center shrink-0"
                         title="Level Berikutnya"
                       >
-                        <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                        <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                       </button>
                     </div>
 
                     {/* Banner Body */}
-                    <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-start justify-between gap-6">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <span className={`text-[11px] uppercase tracking-wider font-semibold ${activeLevel.textColor}`}>
-                            Accommerce Loyalty Points — {activeLevel.label}
+                            Accommerce Loyalty Points — {activeLevel.label} Tier
                           </span>
                           {/* Info Button (? / !) */}
                           <button
                             type="button"
                             onClick={() => setShowLoyaltyInfo(v => !v)}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/35 text-white text-[11px] font-semibold transition-colors cursor-pointer shrink-0 border border-white/30 shadow-xs"
-                            title="Klik untuk melihat penjelasan program loyalitas"
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 hover:bg-white/35 text-white text-[11px] font-semibold transition-colors cursor-pointer shrink-0 border border-white/30 shadow-xs"
+                            title="Klik untuk melihat aturan lengkap program loyalitas"
                           >
                             <span className="material-symbols-outlined text-[14px]">help</span>
-                            <span>Info Program</span>
+                            <span>Aturan & Info Program</span>
                           </button>
                         </div>
 
+                        {/* Point Stats */}
                         {isCurrentLevel ? (
-                          <>
-                            <h3 className="text-3xl font-extrabold mt-1">{currentPoints.toLocaleString('id-ID')} Poin</h3>
-                            <p className={`text-xs mt-1 ${activeLevel.textColor}`}>1 Poin = Rp 100 nilai konversi e-wallet atau voucher promo</p>
-                          </>
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-baseline gap-3">
+                              <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                                {currentPoints.toLocaleString('id-ID')} Poin
+                              </h3>
+                              <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-medium text-white/90">
+                                Saldo Dapat Ditukar
+                              </span>
+                            </div>
+                            <p className={`text-xs ${activeLevel.textColor}`}>
+                              Setara <strong className="text-white font-bold">Rp {((currentPoints) * 100).toLocaleString('id-ID')}</strong> nilai e-wallet / voucher (1 Pts = Rp 100) • Berlaku 12–24 bulan
+                            </p>
+                            <p className="text-[11px] text-white/70 pt-0.5">
+                              Poin Kualifikasi Tier Tahun Ini: <strong className="text-white font-bold">{tierPoints.toLocaleString('id-ID')} Pts</strong> (1 Jan – 31 Des 2026)
+                            </p>
+                          </div>
                         ) : (
-                          <>
+                          <div>
                             <h3 className="text-2xl font-extrabold mt-1 flex items-center gap-2">
-                              <span>{activeLevel.label} Tier</span>
+                              <span>{activeLevel.icon} {activeLevel.label} Tier</span>
                               {activeLoyaltyIdx < currentLevelIndex ? (
-                                <span className="text-xs bg-emerald-500/80 px-2 py-0.5 rounded-full font-medium">✓ Sudah Tercapai</span>
+                                <span className="text-xs bg-emerald-500/90 text-white px-2 py-0.5 rounded-full font-medium">✓ Level Sudah Dilewati</span>
                               ) : (
-                                <span className="text-xs bg-black/30 px-2 py-0.5 rounded-full font-medium">🔒 Belum Tercapai</span>
+                                <span className="text-xs bg-black/40 text-white/90 px-2 py-0.5 rounded-full font-medium">🔒 Level Belum Tercapai</span>
                               )}
                             </h3>
                             <p className={`text-xs mt-1 ${activeLevel.textColor}`}>
                               {activeLoyaltyIdx > currentLevelIndex
-                                ? `Kumpulkan ${(activeLevel.minPoints - currentPoints).toLocaleString('id-ID')} Poin lagi untuk membuka keuntungan level ini`
-                                : `Tingkat awal membership dengan berbagai keuntungan dasar`}
+                                ? `Kualifikasi: Min. ${activeLevel.minPoints.toLocaleString('id-ID')} Poin tier (Akumulasi belanja ≥ Rp ${(activeLevel.spendMin / 1000000).toFixed(0)} Juta)`
+                                : `Tingkat awal membership dengan keuntungan yang telah Anda miliki`}
                             </p>
-                          </>
+                          </div>
                         )}
 
-                        {/* Progress bar (only for current level) */}
-                        {isCurrentLevel && activeLevel.maxPoints && (
-                          <div className="mt-3 max-w-xs">
-                            <div className="flex justify-between text-[10px] text-white/70 mb-1">
-                              <span>{activeLevel.minPoints.toLocaleString('id-ID')} Poin</span>
-                              <span>{activeLevel.maxPoints.toLocaleString('id-ID')} Poin</span>
+                        {/* Progress Bar: Kurang Rp X lagi untuk naik tier */}
+                        {isCurrentLevel && nextLevel && (
+                          <div className="mt-4 max-w-lg bg-black/25 backdrop-blur-sm p-3.5 rounded-xl border border-white/20 shadow-xs">
+                            <div className="flex flex-wrap justify-between items-center text-xs mb-1.5 font-medium gap-1">
+                              <span className="flex items-center gap-1.5 text-white/90">
+                                <span>Menuju {nextLevel.icon} <strong>{nextLevel.label}</strong></span>
+                              </span>
+                              <span className="font-extrabold text-amber-200 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-300/30">
+                                Kurang Rp {rupiahNeeded.toLocaleString('id-ID')} lagi ({pointsNeeded.toLocaleString('id-ID')} Pts)
+                              </span>
                             </div>
-                            <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                            <div className="h-2.5 bg-white/20 rounded-full overflow-hidden p-0.5">
                               <div
-                                className="h-full bg-white/80 rounded-full transition-all"
+                                className="h-full bg-gradient-to-r from-amber-300 via-emerald-300 to-emerald-400 rounded-full transition-all duration-500 shadow-xs"
                                 style={{ width: `${progressPct}%` }}
                               />
                             </div>
-                            <p className="text-[10px] text-white/60 mt-1">{progressPct}% menuju level berikutnya</p>
+                            <div className="flex justify-between text-[10px] text-white/70 mt-1">
+                              <span>{tierPoints.toLocaleString('id-ID')} Poin tercapai ({progressPct}%)</span>
+                              <span>Target: {nextLevel.minPoints.toLocaleString('id-ID')} Poin</span>
+                            </div>
                           </div>
                         )}
-                        {isCurrentLevel && !activeLevel.maxPoints && (
-                          <div className="mt-2">
-                            <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-semibold">🏆 Level Tertinggi Tercapai</span>
+
+                        {/* Progress display when viewing unachieved level */}
+                        {!isCurrentLevel && activeLoyaltyIdx > currentLevelIndex && (
+                          <div className="mt-4 max-w-lg bg-black/25 backdrop-blur-sm p-3.5 rounded-xl border border-white/20">
+                            <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                              <span>Target ke {activeLevel.label}</span>
+                              <span className="text-amber-200">
+                                Butuh Belanja Tambahan Rp {targetRupiahNeeded.toLocaleString('id-ID')}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-white/70">
+                              Kumpulkan {targetPointsNeeded.toLocaleString('id-ID')} Poin tier lagi untuk membuka seluruh keuntungan eksklusif level {activeLevel.label}.
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Diamond Highest Level notice */}
+                        {isCurrentLevel && !nextLevel && (
+                          <div className="mt-3 inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full text-xs font-bold text-white border border-white/30">
+                            <span>👑 Level Tertinggi Tercapai (Diamond Member)</span>
                           </div>
                         )}
                       </div>
 
                       {/* Right: Perks list */}
-                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3.5 text-xs text-white/90 max-w-xs w-full sm:w-auto shrink-0">
-                        <p className="font-bold mb-1.5 text-white text-[11px] uppercase tracking-wide flex items-center justify-between">
-                          <span>Keuntungan {activeLevel.label}</span>
-                          <span className="text-[10px] font-normal text-white/70">
-                            {activeLevel.maxPoints ? `≥ ${activeLevel.minPoints.toLocaleString('id-ID')} pts` : `≥ 20.000 pts`}
+                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 text-xs text-white/95 max-w-sm w-full lg:w-80 shrink-0">
+                        <div className="flex items-center justify-between border-b border-white/15 pb-2 mb-2.5">
+                          <p className="font-bold text-white text-[12px] uppercase tracking-wide flex items-center gap-1.5">
+                            <span>{activeLevel.icon}</span>
+                            <span>Keuntungan {activeLevel.label}</span>
+                          </p>
+                          <span className="text-[10px] font-semibold text-white/80 bg-white/15 px-2 py-0.5 rounded">
+                            {activeLevel.maxPoints ? `≥ ${activeLevel.minPoints.toLocaleString('id-ID')} pts` : `≥ 40.000 pts`}
                           </span>
-                        </p>
-                        <ul className="space-y-1">
+                        </div>
+                        <ul className="space-y-2">
                           {activeLevel.perks.map((p, i) => (
-                            <li key={i} className="flex items-start gap-1.5">
-                              <span className="material-symbols-outlined text-[13px] text-white/80 mt-0.5 shrink-0">check_circle</span>
+                            <li key={i} className="flex items-start gap-2 leading-relaxed">
+                              <span className="material-symbols-outlined text-[14px] text-emerald-300 mt-0.5 shrink-0">check_circle</span>
                               <span>{p}</span>
                             </li>
                           ))}
@@ -1094,29 +1240,53 @@ export default function DashboardPage() {
 
                     {/* Loyalty Info Popup */}
                     {showLoyaltyInfo && (
-                      <div className="mx-5 mb-5 p-4 bg-black/30 backdrop-blur-sm rounded-xl text-xs text-white/90 border border-white/20 space-y-2">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-white text-sm flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[16px]">loyalty</span>
-                            Program Loyalitas Accommerce
+                      <div className="mx-5 mb-5 p-5 bg-black/40 backdrop-blur-md rounded-2xl text-xs text-white/95 border border-white/20 space-y-4 shadow-xl">
+                        <div className="flex items-center justify-between border-b border-white/20 pb-2">
+                          <span className="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[20px] text-amber-300">verified</span>
+                            Ketentuan & Panduan Program Loyalitas Accommerce
                           </span>
-                          <button onClick={() => setShowLoyaltyInfo(false)} className="text-white/60 hover:text-white cursor-pointer">
-                            <span className="material-symbols-outlined text-[18px]">close</span>
+                          <button onClick={() => setShowLoyaltyInfo(false)} className="text-white/60 hover:text-white p-1 cursor-pointer">
+                            <span className="material-symbols-outlined text-[20px]">close</span>
                           </button>
                         </div>
-                        <p>Kumpulkan poin dari setiap transaksi dan dapatkan keuntungan eksklusif sesuai level membership Anda.</p>
-                        <div className="grid grid-cols-3 gap-2 pt-1">
-                          {LOYALTY_LEVELS.map(lv => (
-                            <div key={lv.id} className="bg-white/10 rounded-lg p-2 text-center">
-                              <div className="text-lg mb-0.5">{lv.icon}</div>
-                              <div className="font-bold text-white text-[11px]">{lv.label}</div>
-                              <div className="text-white/60 text-[10px] mt-0.5">
-                                {lv.maxPoints ? `${lv.minPoints.toLocaleString('id-ID')}–${lv.maxPoints.toLocaleString('id-ID')} Poin` : `≥ ${lv.minPoints.toLocaleString('id-ID')} Poin`}
+
+                        {/* 6 Tiers Grid Table */}
+                        <div>
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-white/80 mb-2">Tingkatan Level & Threshold Belanja</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                            {LOYALTY_LEVELS.map(lv => (
+                              <div key={lv.id} className="bg-white/10 rounded-xl p-2.5 text-center border border-white/15">
+                                <div className="text-xl mb-1">{lv.icon}</div>
+                                <div className="font-extrabold text-white text-[12px]">{lv.label}</div>
+                                <div className="text-white/90 font-bold text-[11px] mt-0.5">
+                                  {lv.maxPoints ? `${lv.minPoints.toLocaleString('id-ID')}–${lv.maxPoints.toLocaleString('id-ID')} Pts` : `≥ ${lv.minPoints.toLocaleString('id-ID')} Pts`}
+                                </div>
+                                <div className="text-white/60 text-[10px] mt-0.5">
+                                  {lv.spendMin ? `Belanja ≥ Rp ${(lv.spendMin / 1000000).toFixed(0)} Juta` : 'Belanja awal'}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                        <p className="text-white/60 text-[10px] pt-1">💡 100 Poin = Rp 10.000 nilai klaim. Poin tidak kadaluarsa selama akun aktif.</p>
+
+                        {/* 6 Rules List */}
+                        <div className="bg-white/10 rounded-xl p-4 space-y-2 border border-white/15">
+                          <p className="font-bold text-white text-xs uppercase tracking-wide">6 Aturan Utama Sistem Loyalitas:</p>
+                          <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-white/90 leading-relaxed">
+                            <li><strong>Periode Kualifikasi Tier</strong>: Dihitung berdasarkan tahun kalender (1 Jan – 31 Des). Status tier berlaku hingga akhir tahun berikutnya. Penurunan tier dibatasi maksimal 1 level per tahun, dan kenaikan tier langsung aktif saat threshold tercapai.</li>
+                            <li><strong>Pemisahan Poin Tier & Saldo Poin</strong>: <em>Poin Tier</em> dihitung dari belanja tahun berjalan untuk menentukan level member. <em>Saldo Poin</em> adalah poin yang dapat ditukar ke saldo e-wallet atau voucher promo dan berlaku 12–24 bulan sejak transaksi.</li>
+                            <li><strong>Faktur Pajak PKP Terbuka untuk Semua</strong>: Faktur Pajak resmi diberikan kepada seluruh member terverifikasi yang melampirkan NPWP & SPPKP resmi perusahaan, tidak terbatas pada level tertentu.</li>
+                            <li><strong>Perk Tier Bronze</strong>: Mendapatkan voucher nominal potongan Rp 25.000 / diskon khusus aksesori audio visual dan gratis ongkir 1x/bulan.</li>
+                            <li><strong>Keuntungan B2B Enterprise (Gold, Platinum, Diamond)</strong>: Akses Project Pricing khusus tender/pengadaan, prioritas alokasi stok, termin pembayaran B2B (NET 14 / NET 30 hari), serta garansi & RMA express.</li>
+                            <li><strong>Reward Ulasan Terverifikasi (+50 Poin)</strong>: Bonus 50 Poin hanya diberikan untuk ulasan produk yang telah dipesan dan diverifikasi (maksimal 1 ulasan per produk).</li>
+                          </ol>
+                        </div>
+
+                        <div className="text-white/70 text-[10px] pt-1 flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[15px] text-amber-300">lightbulb</span>
+                          <span>Formula: Belanja Rp 1.000.000 = 100 Poin (1 Pts = Rp 10.000 belanja). Nilai penukaran: 1 Pts = Rp 100 nilai saldo e-wallet.</span>
+                        </div>
                       </div>
                     )}
                   </div>
