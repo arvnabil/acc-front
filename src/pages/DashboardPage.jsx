@@ -163,24 +163,34 @@ export default function DashboardPage() {
       ] 
     },
   ];
-  const currentPoints = user?.points || 0; // Saldo poin yang dapat ditukar
-  const tierPoints = user?.tierPoints ?? user?.points ?? 0; // Poin kualifikasi tier tahun berjalan
-  const tierLower = (user?.memberTier || '').toLowerCase();
+  // Revisi 3: Pemisahan data poin & sumber level aktif
+  const pointsBalance = user?.points_balance ?? user?.points ?? 0; // Saldo reward aktif (spendable)
+  const tierPoints = user?.tier_points ?? user?.tierPoints ?? user?.points ?? 0; // Poin kualifikasi tier tahun berjalan
+  const currentTierName = user?.current_tier || user?.memberTier || 'Platinum';
+  const tierLower = currentTierName.toLowerCase();
 
+  // Status badge & perks aktif dibaca dari current_tier (Revisi 3), bukan dihitung ulang dari tier_points
   let currentLevelIndex = 0;
-  if (tierLower.includes('diamond') || tierPoints >= 40000) {
+  if (tierLower.includes('diamond')) {
     currentLevelIndex = 5;
-  } else if (tierLower.includes('platinum') || tierPoints >= 15000) {
+  } else if (tierLower.includes('platinum')) {
     currentLevelIndex = 4;
-  } else if (tierLower.includes('gold') || tierPoints >= 7500) {
+  } else if (tierLower.includes('gold')) {
     currentLevelIndex = 3;
-  } else if (tierLower.includes('silver') || tierPoints >= 1500) {
+  } else if (tierLower.includes('silver')) {
     currentLevelIndex = 2;
-  } else if (tierLower.includes('bronze') || tierPoints >= 500) {
+  } else if (tierLower.includes('bronze')) {
     currentLevelIndex = 1;
   } else {
     currentLevelIndex = 0;
   }
+
+  // Revisi 3: Pemisahan "Nilai Saldo" vs "Dapat Ditukar Sekarang"
+  const nilaiSaldoRupiah = pointsBalance * 100;
+  const monthlyQuotaLeft = user?.monthlyQuotaLeft ?? 5000;
+  const maturePoints = user?.maturePoints ?? pointsBalance; // Poin berusia >= 30 hari
+  const canRedeemNowPoints = maturePoints >= 500 ? Math.min(maturePoints, monthlyQuotaLeft) : 0;
+  const canRedeemNowRupiah = canRedeemNowPoints * 100;
 
   const [activeLoyaltyIdx, setActiveLoyaltyIdx] = useState(currentLevelIndex);
 
@@ -410,7 +420,7 @@ export default function DashboardPage() {
       <div className="w-full bg-[#0a3875] text-white rounded-2xl p-6 sm:p-8 mb-8 relative overflow-hidden shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-3 z-10">
           <div className="inline-block bg-[#164e9a] text-white text-[11px] font-semibold tracking-wider uppercase px-3 py-1 rounded">
-            {user.memberTier || 'MEMBER PLATINUM'}
+            {user.current_tier ? `MEMBER ${user.current_tier.toUpperCase()}` : (user.memberTier || 'MEMBER PLATINUM')}
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{user.name || 'John Doe'}</h1>
           <p className="text-blue-100 text-[13px] sm:text-[14px]">
@@ -418,23 +428,30 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Balance & Points Info */}
-        <div className="z-10 flex flex-wrap items-center gap-6 md:text-right">
+        {/* Balance & Points Info: Revisi 3 (Nilai Saldo & Dapat Ditukar Sekarang) */}
+        <div className="z-10 flex flex-wrap items-center gap-4 sm:gap-5 md:text-right">
+          {/* Card 1: Saldo Poin */}
           <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
-            <span className="text-[12px] font-medium text-blue-200 block">Poin Reward</span>
-            <div className="flex items-center gap-1.5 justify-end">
-              <span className="material-symbols-outlined text-amber-300 text-[20px]">stars</span>
-              <span className="text-2xl font-bold text-amber-300">{(user.points || 0).toLocaleString('id-ID')}</span>
+            <span className="text-[11px] font-medium text-blue-200 block">Saldo Poin</span>
+            <div className="flex items-center gap-1.5 md:justify-end">
+              <span className="material-symbols-outlined text-amber-300 text-[18px]">stars</span>
+              <span className="text-xl sm:text-2xl font-bold text-amber-300">{pointsBalance.toLocaleString('id-ID')}</span>
               <span className="text-xs text-blue-200">pts</span>
             </div>
+            <span className="text-[10px] text-blue-200/80 block mt-0.5">
+              Nilai Saldo: Rp {nilaiSaldoRupiah.toLocaleString('id-ID')}
+            </span>
           </div>
 
-          <div>
-            <span className="text-[12px] font-medium text-blue-200 block">Nilai Konversi Poin</span>
-            <div className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Rp {((user.points || 0) * 100).toLocaleString('id-ID')}
+          {/* Card 2: Dapat Ditukar Sekarang */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-emerald-400/30">
+            <span className="text-[11px] font-medium text-emerald-200 block">Dapat Ditukar Sekarang</span>
+            <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
+              Rp {canRedeemNowRupiah.toLocaleString('id-ID')}
             </div>
-            <span className="text-[10px] text-blue-200/70 mt-0.5 block">Setara saldo e-wallet (1 Pts = Rp 100)</span>
+            <span className="text-[10px] text-emerald-100/80 mt-0.5 block">
+              {canRedeemNowPoints > 0 ? `${canRedeemNowPoints.toLocaleString('id-ID')} Pts • Usia ≥30 hr` : 'Min. 500 Pts & usia 30 hr'}
+            </span>
           </div>
         </div>
 
@@ -1135,22 +1152,30 @@ export default function DashboardPage() {
                           </button>
                         </div>
 
-                        {/* Point Stats */}
+                        {/* Point Stats — Revisi 3 */}
                         {isCurrentLevel ? (
-                          <div className="space-y-1">
+                          <div className="space-y-1.5">
+                            {/* Row 1: Saldo Poin + Nilai Saldo */}
                             <div className="flex flex-wrap items-baseline gap-3">
                               <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                                {currentPoints.toLocaleString('id-ID')} Poin
+                                {pointsBalance.toLocaleString('id-ID')} Pts
                               </h3>
                               <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-medium text-white/90">
-                                Saldo Dapat Ditukar
+                                Saldo Poin
                               </span>
                             </div>
                             <p className={`text-xs ${activeLevel.textColor}`}>
-                              Setara <strong className="text-white font-bold">Rp {((currentPoints) * 100).toLocaleString('id-ID')}</strong> nilai e-wallet / voucher (1 Pts = Rp 100) • Berlaku 12–24 bulan
+                              Nilai Saldo: <strong className="text-white font-bold">Rp {nilaiSaldoRupiah.toLocaleString('id-ID')}</strong> (1 Pts = Rp 100) • Berlaku 24 bulan, FIFO
                             </p>
-                            <p className="text-[11px] text-white/70 pt-0.5">
-                              Poin Kualifikasi Tier Tahun Ini: <strong className="text-white font-bold">{tierPoints.toLocaleString('id-ID')} Pts</strong> (1 Jan – 31 Des 2026)
+                            {/* Row 2: Dapat Ditukar Sekarang */}
+                            <p className="text-[11px] text-emerald-200 pt-0.5 flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-[14px] text-emerald-300">swap_horiz</span>
+                              Dapat Ditukar Sekarang: <strong className="text-white font-bold">Rp {canRedeemNowRupiah.toLocaleString('id-ID')}</strong>
+                              <span className="text-white/50">{canRedeemNowPoints > 0 ? `(${canRedeemNowPoints.toLocaleString('id-ID')} Pts ≥30 hr)` : '— Min. 500 Pts & usia 30 hr'}</span>
+                            </p>
+                            {/* Row 3: Poin Tier */}
+                            <p className="text-[11px] text-white/60 pt-0.5">
+                              Poin Tier Tahun Ini: <strong className="text-white/80 font-bold">{tierPoints.toLocaleString('id-ID')} Pts</strong> (1 Jan – 31 Des 2026) • Tidak berkurang saat redeem
                             </p>
                           </div>
                         ) : (
@@ -1272,22 +1297,22 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        {/* 6 Rules List */}
+                        {/* 6 Rules List — Revisi 3 */}
                         <div className="bg-white/10 rounded-xl p-4 space-y-2 border border-white/15">
-                          <p className="font-bold text-white text-xs uppercase tracking-wide">6 Aturan Utama Sistem Loyalitas:</p>
+                          <p className="font-bold text-white text-xs uppercase tracking-wide">6 Aturan Utama Sistem Loyalitas (Revisi 3):</p>
                           <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-white/90 leading-relaxed">
-                            <li><strong>Periode Kualifikasi Tier</strong>: Dihitung berdasarkan tahun kalender (1 Jan – 31 Des). Status tier berlaku hingga akhir tahun berikutnya. Penurunan tier dibatasi maksimal 1 level per tahun, dan kenaikan tier langsung aktif saat threshold tercapai.</li>
-                            <li><strong>Pemisahan Poin Tier & Saldo Poin</strong>: <em>Poin Tier</em> dihitung murni dari belanja tahun berjalan (1 Poin = Rp 10.000). Bonus belanja tier (5%–30%) tidak masuk ke Poin Tier, melainkan langsung ke <em>Saldo Poin</em> yang dapat ditukarkan ke e-wallet/voucher (berlaku 12–24 bulan).</li>
+                            <li><strong>Status Level dari <code>current_tier</code></strong>: Badge dan perks aktif dibaca dari status level yang tersimpan, bukan dihitung ulang dari tier_points. Upgrade aktif seketika saat threshold tier_points tercapai. Evaluasi akhir tahun (31 Des): jika tidak memenuhi syarat, turun maks. 1 level.</li>
+                            <li><strong>3 Kolom Data Poin</strong>: <em>tier_points</em> = akumulasi belanja murni tahun ini (direset 1 Jan, tidak berkurang saat redeem). <em>points_balance</em> = saldo reward aktif (berlaku 24 bulan FIFO, berkurang saat redeem). <em>current_tier</em> = sumber tunggal badge & fasilitas.</li>
                             <li><strong>Faktur Pajak PKP Terbuka untuk Semua</strong>: Faktur Pajak resmi diberikan kepada seluruh member terverifikasi yang melampirkan NPWP & SPPKP resmi perusahaan, tidak terbatas pada level tertentu.</li>
                             <li><strong>Perk Tier Bronze</strong>: Mendapatkan voucher nominal potongan Rp 25.000 / diskon khusus aksesori audio visual dan gratis ongkir 1x/bulan.</li>
-                            <li><strong>Keuntungan B2B Enterprise (Gold, Platinum, Diamond)</strong>: Akses Project Pricing khusus tender/pengadaan, prioritas alokasi stok, termin pembayaran B2B (NET 14 / NET 30 hari setelah verifikasi kelayakan kredit), serta garansi & RMA express.</li>
-                            <li><strong>Reward Ulasan Terverifikasi (+50 Poin)</strong>: Bonus 50 Poin hanya diberikan untuk ulasan produk yang telah dipesan dan diverifikasi (maksimal 1 ulasan per produk).</li>
+                            <li><strong>Keuntungan B2B Enterprise (Gold, Platinum, Diamond)</strong>: Akses Project Pricing, prioritas alokasi stok, termin pembayaran B2B (NET 14 / NET 30 hari setelah verifikasi kredit), serta garansi & RMA Express.</li>
+                            <li><strong>Retur & Poin</strong>: Jika pesanan diretur: tier_points ditarik poin dasar (level tidak langsung turun). points_balance ditarik poin dasar + bonus. Jika saldo tidak cukup, saldo boleh minus (utang poin, dipotong dari perolehan berikutnya).</li>
                           </ol>
                         </div>
 
                         <div className="text-white/70 text-[10px] pt-1 flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[15px] text-amber-300">lightbulb</span>
-                          <span>Formula: Belanja Rp 10.000 = 1 Poin (floor(belanja / 10.000)). Nilai penukaran: 1 Pts = Rp 100 saldo e-wallet & voucher. Limit e-wallet: Maks 5.000 Pts (Rp 500rb)/bulan.</span>
+                          <span>Formula: Belanja Rp 10.000 = 1 Poin dasar. Bonus tier (5–30%) hanya masuk Saldo Poin. Nilai penukaran: 1 Pts = Rp 100. Limit e-wallet: Maks 5.000 Pts/bulan, poin usia ≥30 hr.</span>
                         </div>
                       </div>
                     )}

@@ -1,8 +1,8 @@
-# 💎 Dokumen Spesifikasi Resmi: Sistem Loyalitas, Poin & Tier Member Accommerce (Revisi 2)
+# 💎 Dokumen Spesifikasi Resmi: Sistem Loyalitas, Poin & Tier Member Accommerce (Revisi 3)
 
 Dokumen ini merupakan panduan arsitektur dan spesifikasi bisnis lengkap untuk sistem loyalitas **Accommerce Points & Member Tier System** pada platform **Accommerce.id** (B2B & Enterprise IT / Audio Visual Solution).
 
-**Catatan revisi 2:** rumus perolehan poin diperbaiki, nilai penukaran voucher disamakan dengan nilai poin, penukaran e-wallet diberi batas, dan bonus poin dipastikan hanya masuk ke saldo poin.
+**Catatan revisi 3:** ditambahkan kolom `current_tier` untuk status level (badge tidak lagi dibaca dari `tier_points`), contoh penukaran diperbaiki agar sesuai aturan minimum, aturan retur dirinci, kedaluwarsa poin ditetapkan 24 bulan dengan metode FIFO, dan dashboard memisahkan "Nilai Saldo" dari "Dapat Ditukar Sekarang".
 
 ---
 
@@ -78,57 +78,74 @@ Program Loyalitas Accommerce dirancang khusus untuk memotivasi pelanggan retail 
 ### 1. Periode Kualifikasi & Masa Berlaku Tier
 * **Periode Kualifikasi**: Dihitung berdasarkan **Tahun Kalender (1 Januari – 31 Desember)**.
 * **Masa Berlaku Status**: Status tier yang diraih berlaku selama tahun berjalan hingga **akhir tahun kalender berikutnya (31 Desember tahun depan)**.
-* **Kenaikan Tier (*Upgrade*)**: Langsung aktif seketika saat threshold poin tier tercapai.
-* **Penurunan Tier (*Downgrade*)**: Dibatasi maksimal **turun 1 level per tahun** jika kualifikasi tahunan tidak tercapai pada akhir tahun evaluasi (grace period ramah pelanggan).
+* **Kenaikan Tier (*Upgrade*)**: Langsung aktif seketika saat threshold `tier_points` tercapai. Masa berlaku status dihitung ulang menjadi 31 Desember tahun berikutnya.
+* **Evaluasi Akhir Tahun**: Dijalankan setiap **31 Desember** hanya untuk member yang masa berlaku statusnya berakhir pada tanggal tersebut:
+  * Jika `tier_points` tahun itu memenuhi level saat ini atau lebih tinggi → status dipertahankan dan masa berlaku diperpanjang 1 tahun.
+  * Jika `tier_points` hanya memenuhi level lebih rendah → status **turun maksimal 1 level** (grace period ramah pelanggan), masa berlaku baru sampai 31 Desember tahun berikutnya.
+* **Retur & Tier**: Pengurangan `tier_points` akibat retur tidak menurunkan `current_tier` secara langsung. Dampaknya baru diperhitungkan pada evaluasi akhir tahun.
 
-### 2. Pemisahan "Poin Tier" dan "Saldo Poin"
+### 2. Pemisahan "Poin Tier", "Saldo Poin", dan "Status Level"
+Sistem memakai **tiga data terpisah** pada tabel member:
+
+| Kolom | Fungsi | Berubah Ketika |
+| :--- | :--- | :--- |
+| `tier_points` (INTEGER) | Akumulasi belanja tahun berjalan untuk kualifikasi level dan progress bar | Belanja selesai, retur, reset 1 Januari |
+| `points_balance` (INTEGER) | Saldo reward aktif yang dapat ditukarkan | Belanja selesai, bonus, ulasan, penukaran, kedaluwarsa, retur |
+| `current_tier` + `tier_valid_until` | Status level aktif dan masa berlakunya (sumber badge dan perks) | Upgrade, evaluasi akhir tahun |
+
 * **Poin Tier (*Tier Qualification Points*)**:
   * Dihitung murni dari total nilai belanja tahun berjalan (1 Poin = Rp 10.000 belanja).
-  * **Bonus poin tier (5% – 30%) tidak dihitung ke Poin Tier**, hanya masuk ke Saldo Poin, agar member tidak naik level lebih cepat karena bonus.
+  * **Bonus poin tier (5% – 30%) dan poin ulasan tidak dihitung ke Poin Tier**, hanya masuk ke Saldo Poin, agar member tidak naik level lebih cepat karena bonus.
   * Tidak berkurang saat member melakukan penukaran e-wallet atau voucher.
   * Direset setiap awal tahun kalender (1 Januari) untuk siklus kualifikasi baru.
 * **Saldo Poin (*Spendable Balance*)**:
   * Poin reward riil yang dapat ditukarkan ke uang saku (e-wallet) atau voucher diskon.
   * Terdiri dari poin dasar belanja ditambah bonus poin tier dan poin ulasan.
   * Berkurang saat member mengklaim saldo e-wallet atau menukar kupon.
-  * Memiliki masa berlaku **12 hingga 24 bulan** sejak tanggal transaksi perolehan.
+  * **Masa berlaku 24 bulan** sejak tanggal perolehan. Pemakaian dan kedaluwarsa memakai metode **FIFO** (poin tertua dipakai dan hangus lebih dulu).
+* **Status Level (`current_tier`)**:
+  * Satu-satunya sumber untuk badge level dan perks yang aktif.
+  * **Tidak dihitung ulang dari `tier_points` setiap saat**, karena `tier_points` direset tiap 1 Januari sementara status tier tetap berlaku sampai akhir tahun berikutnya.
 
 > ⚠️ **Catatan Penting: Mengapa Poin Tier & Saldo Poin Terlihat Sama di Awal, Lalu Divergen?**
 >
-> Pada transaksi awal (misal belanja Rp 4.500.000), Poin Tier dan Saldo Poin sama-sama bernilai **450 Poin**. Hal ini murni kebetulan angka awal. Keduanya **wajib diperlakukan sebagai entitas berbeda** karena nilainya akan langsung divergen (berbeda) pada kondisi-kondisi berikut:
-> 1. **Member Menukar Poin**: Saldo Poin berkurang (contoh: tukar 450 poin ke e-wallet $\rightarrow$ saldo menjadi 0), sedangkan Poin Tier tetap 450 (level member tidak turun).
-> 2. **Bonus Belanja Tier & Ulasan Masuk**: Saldo Poin bertambah (bonus tier 5%–30% atau +50 poin per ulasan), sedangkan Poin Tier **tidak ikut naik** (mencegah lonjakan tier buatan).
-> 3. **Kedaluwarsa Poin**: Saldo Poin hangus setelah 12–24 bulan sejak perolehan, sedangkan Poin Tier hanya direset serentak tiap 1 Januari.
-> 4. **Pesanan Diretur / Dibatalkan**: Poin ditarik kembali secara proporsional dari kedua nilai (Poin Tier dan Saldo Poin).
+> Pada transaksi awal (misal belanja Rp 4.500.000), Poin Tier dan Saldo Poin sama-sama bernilai **450 Poin**. Hal ini murni kebetulan angka awal. Keduanya **wajib diperlakukan sebagai entitas berbeda** karena nilainya akan divergen pada kondisi berikut:
+> 1. **Member Menukar Poin**: Saldo Poin berkurang, sedangkan Poin Tier tetap. *Contoh*: member memiliki 600 poin (belanja Rp 6.000.000, sudah lewat 30 hari), menukar **500 poin** ke e-wallet Rp 50.000 → `points_balance` menjadi 100, `tier_points` tetap 600.
+> 2. **Bonus Tier & Ulasan Masuk**: Saldo Poin bertambah (bonus 5%–30% atau +50 poin per ulasan), sedangkan Poin Tier **tidak ikut naik** (mencegah lonjakan tier buatan).
+> 3. **Kedaluwarsa Poin**: Saldo Poin hangus setelah 24 bulan sejak perolehan, sedangkan Poin Tier hanya direset serentak tiap 1 Januari.
+> 4. **Pesanan Diretur / Dibatalkan**: Lihat aturan rinci di bagian 4.6.
 >
-> 🛠️ **Rekomendasi Arsitektur Database & Implementasi Kode:**
-> * Simpan sebagai **dua kolom terpisah** pada tabel user/member:
->   * `tier_points` (INTEGER): Untuk akumulasi belanja tahunan & kualifikasi level.
->   * `points_balance` (INTEGER): Untuk saldo reward aktif yang dapat ditukarkan.
-> * **Aturan Tampilan di Dashboard**:
->   * Kartu **"Nilai Konversi Poin"** (misal Rp 45.000) **WAJIB dihitung dari `points_balance × Rp 100`**, BUKAN dari `tier_points`. Jika salah mengambil variabel, setelah penukaran kartu ini akan tetap menampilkan nilai lama.
->   * **Progress Bar** (*"Kurang Rp X lagi untuk naik tier"*) dan penentuan status badge level **WAJIB menggunakan `tier_points`**.
->   * Berikan label dan penjelasan UI yang tegas agar pelanggan tidak mengalami kebingungan antara poin untuk naik level vs poin uang saku.
+> 🛠️ **Aturan Tampilan di Dashboard:**
+> * **Badge level dan perks aktif** dibaca dari `current_tier`.
+> * **Progress Bar** (*"Kurang Rp X lagi untuk naik tier"*) memakai `tier_points`.
+> * **Kartu "Nilai Saldo"** (misal Rp 45.000) dihitung dari `points_balance × Rp 100`, BUKAN dari `tier_points`.
+> * **Kartu "Dapat Ditukar Sekarang"** dihitung hanya dari poin yang memenuhi syarat penukaran: berusia minimal 30 hari, minimal 500 poin per penukaran, dan dibatasi sisa kuota bulan berjalan (maks. 5.000 poin). Angka ini bisa lebih kecil dari Nilai Saldo.
+> * Berikan label dan penjelasan UI yang tegas agar pelanggan tidak bingung antara poin untuk naik level vs poin uang saku.
 
 ### 3. Faktur Pajak PKP Terbuka untuk Seluruh Member
 * Faktur Pajak resmi bukan merupakan perk eksklusif tier atas, melainkan hak seluruh pelanggan berbadan hukum/pribadi yang melampirkan NPWP & SPPKP resmi perusahaan.
 
 ### 4. Reward Ulasan Pembelian Terverifikasi
-* Member berhak mendapatkan reward **+50 Poin** untuk setiap ulasan produk.
+* Member berhak mendapatkan reward **+50 Poin** (masuk ke Saldo Poin) untuk setiap ulasan produk.
 * Hanya berlaku untuk produk dari pesanan dengan status **Selesai**.
 * Dibatasi **maksimal 1 ulasan per produk** untuk mencegah spam dan kecurangan.
 
 ### 5. Kalkulasi Sisa Belanja di Dashboard
 * Dashboard menampilkan progress bar interaktif dengan konversi nominal:
 
-  `Sisa Belanja (Rp) = (Target Poin Tier Berikutnya − Poin Tier Saat Ini) × Rp 10.000`
+  `Sisa Belanja (Rp) = (Target Poin Tier Berikutnya − tier_points Saat Ini) × Rp 10.000`
 
-  *Contoh*: Menuju Gold (7.500 Pts), user memiliki 5.000 Pts tier → Kurang 2.500 Pts tier atau **Kurang Rp 25.000.000 belanja lagi**.
-  *(Catatan: Perhitungan ini selalu merujuk ke `tier_points`, tidak terpengaruh oleh penukaran saldo poin ke e-wallet).*
+  *Contoh*: Menuju Gold (7.500 Pts), member memiliki `tier_points` 5.000 → kurang 2.500 poin atau **kurang Rp 25.000.000 belanja lagi**.
+  *(Perhitungan ini selalu merujuk ke `tier_points`, tidak terpengaruh penukaran saldo poin.)*
 
 ### 6. Kapan Poin Diberikan & Ditarik Kembali
 * Poin dasar dan bonus baru masuk setelah pesanan berstatus **Selesai** dan melewati masa retur/RMA (disarankan 7 hari).
-* Jika pesanan diretur atau dibatalkan, poin yang sudah diberikan ditarik kembali, baik dari Poin Tier maupun Saldo Poin.
+* **Jika pesanan diretur atau dibatalkan setelah poin diberikan:**
+  * Dari `tier_points` ditarik **poin dasar** saja (nilai minimal 0).
+  * Dari `points_balance` ditarik **poin dasar + bonus tier** dari pesanan tersebut.
+  * Poin ulasan untuk produk yang diretur ikut ditarik.
+* **Jika poin sudah ditukar sebelum retur** sehingga saldo tidak cukup: saldo boleh bernilai **minus** (utang poin) dan akan dipotong otomatis dari poin yang diperoleh berikutnya. Voucher atau e-wallet yang sudah dicairkan tidak ditarik kembali.
+* `current_tier` tidak berubah akibat retur (lihat bagian 4.1).
 
 ---
 
@@ -139,7 +156,7 @@ Program Loyalitas Accommerce dirancang khusus untuk memotivasi pelanggan retail 
 
 `Bonus Poin = floor(Poin Dasar × Persentase Bonus Tier)`
 
-*Contoh*: belanja Rp 1.900.000 → 190 poin dasar (sebelumnya hanya 100 poin karena pembulatan per Rp 1 juta). Member Gold (bonus 10%) → +19 poin ke Saldo Poin.
+*Contoh*: belanja Rp 1.900.000 → 190 poin dasar. Member Gold (bonus 10%) → +19 poin ke Saldo Poin, dan `tier_points` bertambah 190.
 
 ### B. Rasio Penukaran ke Saldo E-Wallet
 * Nilai tukar tetap: **1 Poin = Rp 100 Saldo Uang Nyata**.
@@ -165,16 +182,15 @@ Semua voucher bernilai sama dengan nilai poin yang ditukar (1 Poin = Rp 100), de
 
 ---
 
-## 6. 📋 Ringkasan Perubahan dari Versi Sebelumnya
+## 6. 📋 Ringkasan Perubahan dari Revisi 2
 
-| Bagian | Sebelumnya | Sekarang |
+| Bagian | Revisi 2 | Revisi 3 |
 | :--- | :--- | :--- |
-| Rumus poin (5A) | `floor(belanja / Rp 1 jt) × 100` | `floor(belanja / Rp 10.000)` |
-| Voucher 600 Poin | Diskon 15% maks. Rp 150.000 | Dihapus |
-| Voucher 1.200 Poin | Potongan Rp 150.000 | Diganti 1.500 Poin → Rp 150.000 |
-| Voucher 2.000 Poin | Potongan Rp 300.000 | Diganti 3.000 Poin → Rp 300.000 |
-| Voucher baru | – | 750 Poin → Rp 75.000 |
-| Penukaran e-wallet | Tanpa batas | Maks. 5.000 Poin/bulan, tunggu 30 hari, e-wallet terverifikasi |
-| Bonus poin tier | Tidak dijelaskan | Hanya ke Saldo Poin, bukan Poin Tier |
-| Poin saat retur | Tidak dijelaskan | Poin ditarik kembali, diberikan setelah masa retur |
-| Termin NET | Otomatis per tier | Perlu verifikasi kelayakan kredit |
+| Sumber badge level | `tier_points` | `current_tier` (+ `tier_valid_until`) |
+| Evaluasi tier | Tidak dirinci | Tiap 31 Des untuk status yang berakhir, turun maks. 1 level |
+| Contoh penukaran | Tukar 450 poin | Tukar 500 poin dari saldo 600 (sesuai minimum) |
+| Retur | "Ditarik proporsional" | Tier: poin dasar. Saldo: poin dasar + bonus. Saldo boleh minus |
+| Retur dan level | Tidak dijelaskan | Level tidak turun langsung, menunggu evaluasi akhir tahun |
+| Kedaluwarsa poin | 12–24 bulan | 24 bulan, FIFO |
+| Dashboard | Satu kartu nilai konversi | "Nilai Saldo" dan "Dapat Ditukar Sekarang" |
+| Poin ulasan | Masuk saldo (implisit) | Ditegaskan hanya ke Saldo Poin |
