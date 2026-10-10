@@ -337,11 +337,11 @@ export default function DashboardPage() {
           </div>
 
           <div>
-            <span className="text-[12px] font-medium text-blue-200 block">Saldo Klaim Poin</span>
+            <span className="text-[12px] font-medium text-blue-200 block">Nilai Konversi Poin</span>
             <div className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Rp {(user.walletBalance ?? 1500000).toLocaleString('id-ID')}
+              Rp {((user.points || 0) * 100).toLocaleString('id-ID')}
             </div>
-            <span className="text-[10px] text-blue-200/70 mt-0.5 block">Akumulasi penukaran poin ke e-wallet</span>
+            <span className="text-[10px] text-blue-200/70 mt-0.5 block">Setara saldo e-wallet (1 Pts = Rp 100)</span>
           </div>
         </div>
 
