@@ -2,7 +2,7 @@
  * src/pages/ProductDetailPage.jsx
  * Detail produk – redesign sesuai static template Accommerce.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   getProduct,
@@ -472,6 +472,24 @@ const RENTAL_QUICK_STARTS = [
 const RENTAL_QUICK_TIMES = ['08:00', '09:00', '10:00', '13:00', '14:00', '16:00', '18:00'];
 const LICENSE_SEAT_PRESETS = [1, 5, 10, 25, 50, 100];
 
+// ─── Flash Sale Countdown Hook ─────────────────────────────────────────────
+function useCountdown(targetDate) {
+  const calc = () => {
+    const diff = Math.max(0, targetDate - Date.now());
+    return {
+      h: Math.floor(diff / 3600000),
+      m: Math.floor((diff % 3600000) / 60000),
+      s: Math.floor((diff % 60000) / 1000),
+    };
+  };
+  const [time, setTime] = useState(calc);
+  useEffect(() => {
+    const t = setInterval(() => setTime(calc()), 1000);
+    return () => clearInterval(t);
+  }, [targetDate]);
+  return time;
+}
+
 // ─── Main Page ─────────────────────────────────────────────────────────────
 export default function ProductDetailPage() {
   const { slug } = useParams();
@@ -480,6 +498,13 @@ export default function ProductDetailPage() {
   const { user, updateUser } = useAuth();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { showToast } = useToast();
+
+  const flashSaleEnd = useRef((() => {
+    const d = new Date();
+    d.setHours(23, 59, 59, 999);
+    return d.getTime();
+  })());
+  const countdown = useCountdown(flashSaleEnd.current);
 
   const [product, setProduct] = useState(null);
   const [variants, setVariants] = useState([]);
@@ -835,7 +860,7 @@ export default function ProductDetailPage() {
               <div className="flex items-center flex-wrap gap-2">
                 {product.is_flash_sale && (
                   <span className="bg-red-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
-                    <span className="material-symbols-outlined text-[13px]">bolt</span>
+                    <span className="material-symbols-outlined text-[13px]">local_fire_department</span>
                     Flash Sale
                   </span>
                 )}
@@ -895,8 +920,48 @@ export default function ProductDetailPage() {
                 <span className="text-gray-500 text-[13px]">120+ Terjual</span>
               </div>
 
+              {/* Flash Sale Banner & Countdown */}
+              {product.is_flash_sale && (
+                <div className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 rounded-xl p-3 sm:p-3.5 text-white shadow-md flex items-center justify-between flex-wrap gap-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                      <span className="material-symbols-outlined text-[20px] text-yellow-300 animate-pulse">local_fire_department</span>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-[14px] sm:text-[15px] tracking-wide uppercase">FLASH SALE</span>
+                        {discountPct > 0 && (
+                          <span className="bg-yellow-400 text-red-900 text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider">
+                            HEMAT {discountPct}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-white/90">Penawaran waktu & stok terbatas!</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
+                    <span className="text-[11px] text-white/90 font-medium mr-0.5 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">schedule</span>
+                      Berakhir dlm:
+                    </span>
+                    {[countdown.h, countdown.m, countdown.s].map((v, i) => (
+                      <span
+                        key={i}
+                        className="bg-black/35 backdrop-blur-sm border border-white/20 rounded-md px-2 py-0.5 font-mono font-bold text-[13px] text-white min-w-[28px] text-center shadow-inner"
+                      >
+                        {String(v).padStart(2, '0')}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Price box */}
-              <div className="bg-[#fff8f0] border border-orange-200 rounded-xl p-4">
+              <div className={`rounded-xl p-4 border ${
+                product.is_flash_sale
+                  ? 'bg-gradient-to-br from-red-50/70 via-orange-50/50 to-amber-50/70 border-red-200'
+                  : 'bg-[#fff8f0] border-orange-200'
+              }`}>
                 {hasDiscount && (
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[13px] text-gray-400 line-through">

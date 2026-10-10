@@ -29,6 +29,12 @@ function CardBadge({ product, isRental, isLicense }) {
       Lisensi Digital
     </span>
   );
+  if (product.is_flash_sale) return (
+    <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
+      <span className="material-symbols-outlined text-[12px]">local_fire_department</span>
+      Flash Sale
+    </span>
+  );
   if (product.is_featured) return (
     <span className="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded">Best Seller</span>
   );
