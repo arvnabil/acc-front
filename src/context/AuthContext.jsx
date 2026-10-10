@@ -24,6 +24,19 @@ export function AuthProvider({ children }) {
             { id: 'VCH-2', code: 'GRATISONGKIR', title: 'Gratis Ongkir s/d Rp 100.000', minOrder: 1000000, discount: 100000, expiry: '15 Jan 2027' },
             { id: 'VCH-3', code: 'AVSOLUTION10', title: 'Diskon 10% Audio Visual', minOrder: 2000000, discount: 200000, expiry: '28 Feb 2027' }
           ],
+          addresses: parsed.addresses || [
+            {
+              id: 'addr-1',
+              label: 'Kantor',
+              recipientName: parsed.name || 'John Doe',
+              phone: '+62 812-3456-7890',
+              province: 'Banten',
+              city: 'Tangerang Selatan',
+              address: 'Green Office Park 9, BSD City, Pagedangan, Tangerang Selatan 15345',
+              postalCode: '15345',
+              isDefault: true,
+            }
+          ],
           orders: parsed.orders || [
             {
               id: 'ACC-98214',
@@ -56,6 +69,20 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const DEFAULT_ADDRESSES = (name) => [
+    {
+      id: 'addr-1',
+      label: 'Kantor',
+      recipientName: name || 'John Doe',
+      phone: '+62 812-3456-7890',
+      province: 'Banten',
+      city: 'Tangerang Selatan',
+      address: 'Green Office Park 9, BSD City, Pagedangan, Tangerang Selatan 15345',
+      postalCode: '15345',
+      isDefault: true,
+    }
+  ];
+
   function login(userData) {
     const fullUser = {
       name: userData.name || 'John Doe',
@@ -69,6 +96,7 @@ export function AuthProvider({ children }) {
         { id: 'VCH-2', code: 'GRATISONGKIR', title: 'Gratis Ongkir s/d Rp 100.000', minOrder: 1000000, discount: 100000, expiry: '15 Jan 2027' },
         { id: 'VCH-3', code: 'AVSOLUTION10', title: 'Diskon 10% Audio Visual', minOrder: 2000000, discount: 200000, expiry: '28 Feb 2027' }
       ],
+      addresses: userData.addresses || DEFAULT_ADDRESSES(userData.name),
       orders: userData.orders || [
         {
           id: 'ACC-98214',
@@ -97,6 +125,49 @@ export function AuthProvider({ children }) {
     };
     setUser(fullUser);
     localStorage.setItem('accommerce_user', JSON.stringify(fullUser));
+  }
+
+  function saveAddress(addressData) {
+    // If new, generate an id; if existing, update by id
+    const isNew = !addressData.id;
+    const newAddr = isNew ? { ...addressData, id: `addr-${Date.now()}` } : addressData;
+    setUser(prev => {
+      let updated = prev.addresses ? [...prev.addresses] : [];
+      if (newAddr.isDefault) {
+        updated = updated.map(a => ({ ...a, isDefault: false }));
+      }
+      if (isNew) {
+        if (updated.length === 0) newAddr.isDefault = true;
+        updated = [...updated, newAddr];
+      } else {
+        updated = updated.map(a => a.id === newAddr.id ? newAddr : a);
+      }
+      const next = { ...prev, addresses: updated };
+      localStorage.setItem('accommerce_user', JSON.stringify(next));
+      return next;
+    });
+  }
+
+  function deleteAddress(addressId) {
+    setUser(prev => {
+      let updated = (prev.addresses || []).filter(a => a.id !== addressId);
+      // If we deleted the default and there are others, make the first one default
+      if (updated.length > 0 && !updated.some(a => a.isDefault)) {
+        updated[0] = { ...updated[0], isDefault: true };
+      }
+      const next = { ...prev, addresses: updated };
+      localStorage.setItem('accommerce_user', JSON.stringify(next));
+      return next;
+    });
+  }
+
+  function setDefaultAddress(addressId) {
+    setUser(prev => {
+      const updated = (prev.addresses || []).map(a => ({ ...a, isDefault: a.id === addressId }));
+      const next = { ...prev, addresses: updated };
+      localStorage.setItem('accommerce_user', JSON.stringify(next));
+      return next;
+    });
   }
 
   function updateUser(updates) {
@@ -146,7 +217,10 @@ export function AuthProvider({ children }) {
       updateUser, 
       addPoints,
       redeemPointsForWallet, 
-      redeemPointsForVoucher 
+      redeemPointsForVoucher,
+      saveAddress,
+      deleteAddress,
+      setDefaultAddress,
     }}>
       {children}
     </AuthContext.Provider>

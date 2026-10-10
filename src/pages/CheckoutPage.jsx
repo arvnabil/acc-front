@@ -80,25 +80,127 @@ const BANKS = [
 
 export default function CheckoutPage() {
   const { items, total, itemCount, clearCart, appliedPromo, setAppliedPromo } = useCart();
-  const { user, addPoints } = useAuth();
+  const { user, addPoints, saveAddress } = useAuth();
   const navigate = useNavigate();
 
   // Steps: 'checkout' (2) -> 'payment' (3) -> 'success' (4)
   const [currentStep, setCurrentStep] = useState('checkout');
   const [orderNumber, setOrderNumber] = useState('ACC-98214');
 
+  // Multi-address support (Shopee style)
+  const userAddresses = user?.addresses || [];
+  const defaultAddress = userAddresses.find(a => a.isDefault) || userAddresses[0];
+  const [selectedAddressId, setSelectedAddressId] = useState(defaultAddress?.id || null);
+  const [tempSelectedAddressId, setTempSelectedAddressId] = useState(defaultAddress?.id || null);
+  const [showAddressPickerModal, setShowAddressPickerModal] = useState(false);
+  const [showNewAddressModal, setShowNewAddressModal] = useState(false);
+  const [newAddrForm, setNewAddrForm] = useState({
+    label: 'Rumah',
+    recipientName: '',
+    phone: '',
+    province: 'DKI Jakarta',
+    city: 'Jakarta Selatan',
+    address: '',
+    postalCode: '',
+    isDefault: false,
+  });
+
   // Form State
   const [formData, setFormData] = useState({
     name: user?.name || 'Budi Santoso',
     email: user?.email || 'budi@perusahaan.co.id',
-    recipientName: user?.name || 'Budi Santoso',
-    phone: user?.phone || '+62 812-3456-7890',
-    province: 'Banten',
-    city: 'Tangerang Selatan',
-    address: 'Green Office Park 9, BSD City, Pagedangan, Tangerang Selatan 15345',
-    postalCode: '15345',
+    recipientName: defaultAddress?.recipientName || user?.name || 'Budi Santoso',
+    phone: defaultAddress?.phone || user?.phone || '+62 812-3456-7890',
+    province: defaultAddress?.province || 'Banten',
+    city: defaultAddress?.city || 'Tangerang Selatan',
+    address: defaultAddress?.address || 'Green Office Park 9, BSD City, Pagedangan, Tangerang Selatan 15345',
+    postalCode: defaultAddress?.postalCode || '15345',
     notes: '',
   });
+
+  // Sync selected address if user profile addresses change
+  useEffect(() => {
+    if (userAddresses.length > 0) {
+      const active = userAddresses.find(a => a.id === selectedAddressId) || defaultAddress;
+      if (active) {
+        setSelectedAddressId(active.id);
+        setFormData(prev => ({
+          ...prev,
+          recipientName: active.recipientName || prev.recipientName,
+          phone: active.phone || prev.phone,
+          province: active.province || prev.province,
+          city: active.city || prev.city,
+          address: active.address || prev.address,
+          postalCode: active.postalCode || prev.postalCode,
+        }));
+      }
+    }
+  }, [user?.addresses]);
+
+  function handleOpenAddressPicker() {
+    setTempSelectedAddressId(selectedAddressId);
+    setShowAddressPickerModal(true);
+  }
+
+  function handleConfirmAddressPicker() {
+    const selected = userAddresses.find(a => a.id === tempSelectedAddressId);
+    if (selected) {
+      setSelectedAddressId(selected.id);
+      setFormData(prev => ({
+        ...prev,
+        recipientName: selected.recipientName || prev.recipientName,
+        phone: selected.phone || prev.phone,
+        province: selected.province || prev.province,
+        city: selected.city || prev.city,
+        address: selected.address || prev.address,
+        postalCode: selected.postalCode || prev.postalCode,
+      }));
+    }
+    setShowAddressPickerModal(false);
+  }
+
+  function handleOpenNewAddressModal() {
+    setNewAddrForm({
+      label: 'Rumah',
+      recipientName: user?.name || '',
+      phone: user?.phone || '',
+      province: 'DKI Jakarta',
+      city: 'Jakarta Selatan',
+      address: '',
+      postalCode: '',
+      isDefault: userAddresses.length === 0,
+    });
+    setShowNewAddressModal(true);
+  }
+
+  function handleSaveNewAddressSubmit(e) {
+    e.preventDefault();
+    if (!newAddrForm.recipientName.trim() || !newAddrForm.phone.trim() || !newAddrForm.address.trim()) {
+      alert('Mohon lengkapi nama penerima, nomor telepon, dan alamat.');
+      return;
+    }
+    const createdId = `addr-${Date.now()}`;
+    const toSave = {
+      ...newAddrForm,
+      id: createdId,
+    };
+    if (saveAddress) {
+      saveAddress(toSave);
+    }
+    setSelectedAddressId(createdId);
+    setTempSelectedAddressId(createdId);
+    setFormData(prev => ({
+      ...prev,
+      recipientName: toSave.recipientName,
+      phone: toSave.phone,
+      province: toSave.province,
+      city: toSave.city,
+      address: toSave.address,
+      postalCode: toSave.postalCode,
+    }));
+    setShowNewAddressModal(false);
+    setShowAddressPickerModal(false);
+  }
 
   // Selected Shipping & Payment
   const [selectedShipping, setSelectedShipping] = useState(SHIPPING_OPTIONS[0]);
@@ -730,79 +832,153 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* 3. Alamat Pengiriman */}
-          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-6 shadow-sm">
-            <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary mb-3 sm:mb-space-lg pb-2 border-b border-border-subtle flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] flex items-center justify-center font-bold">3</span>
-              <span>Alamat Pengiriman</span>
-            </h3>
-            <div className="flex flex-col gap-3 sm:gap-space-md">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-space-md">
+          {/* 3. Alamat Pengiriman (Shopee Style) */}
+          <div className="bg-card-bg border border-border-subtle rounded-xl p-4 sm:p-6 shadow-sm overflow-hidden relative">
+            {/* Shopee-style decorative top border */}
+            <div className="h-1 bg-gradient-to-r from-primary via-blue-400 to-indigo-500 -mt-4 sm:-mt-6 -mx-4 sm:-mx-6 mb-4 sm:mb-5"></div>
+
+            <div className="flex items-center justify-between mb-3 sm:mb-4 pb-2.5 border-b border-border-subtle">
+              <h3 className="font-title-card text-[15px] sm:text-[16px] font-bold text-text-primary flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] flex items-center justify-center font-bold">3</span>
+                <span className="material-symbols-outlined text-[20px] text-primary">location_on</span>
+                <span>Alamat Pengiriman</span>
+              </h3>
+              {userAddresses.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleOpenAddressPicker}
+                  className="text-xs sm:text-sm font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">swap_horiz</span>
+                  Ubah Alamat
+                </button>
+              )}
+            </div>
+
+            {userAddresses.length > 0 ? (
+              /* Shopee style saved address display */
+              <div className="space-y-3.5">
+                {(() => {
+                  const currentAddr = userAddresses.find(a => a.id === selectedAddressId) || defaultAddress || userAddresses[0];
+                  return (
+                    <div className="bg-blue-50/40 border border-blue-200/80 rounded-xl p-3.5 sm:p-4 transition-all">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-bold text-[14px] sm:text-[15px] text-text-primary">
+                              {currentAddr.recipientName}
+                            </span>
+                            <span className="text-xs font-semibold text-text-secondary">
+                              ({currentAddr.phone})
+                            </span>
+                            {currentAddr.label && (
+                              <span className="bg-gray-100 text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded border border-gray-200 uppercase">
+                                {currentAddr.label}
+                              </span>
+                            )}
+                            {currentAddr.isDefault && (
+                              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-200">
+                                Utama
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs sm:text-sm text-text-primary leading-relaxed">
+                            {currentAddr.address}
+                          </p>
+                          <p className="text-xs text-text-secondary font-medium">
+                            {[currentAddr.city, currentAddr.province, currentAddr.postalCode].filter(Boolean).join(', ')}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleOpenAddressPicker}
+                          className="self-start sm:self-center px-3 py-1.5 bg-white border border-border-subtle hover:border-primary text-xs font-semibold text-text-primary hover:text-primary rounded-lg shadow-2xs transition-colors shrink-0 cursor-pointer"
+                        >
+                          Pilih Alamat Lain
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Catatan Pengiriman */}
                 <div>
-                  <label className="block font-label-sm text-[12px] text-text-primary mb-1">Provinsi *</label>
-                  <select
-                    value={formData.province}
-                    onChange={e => setFormData({ ...formData, province: e.target.value })}
-                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary cursor-pointer"
-                  >
-                    <option>Banten</option>
-                    <option>DKI Jakarta</option>
-                    <option>Jawa Barat</option>
-                    <option>Jawa Tengah</option>
-                    <option>Jawa Timur</option>
-                    <option>Bali</option>
-                    <option>Sumatera Utara</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-label-sm text-[12px] text-text-primary mb-1">Kota / Kabupaten *</label>
-                  <select
-                    value={formData.city}
-                    onChange={e => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary cursor-pointer"
-                  >
-                    <option>Tangerang Selatan</option>
-                    <option>Tangerang</option>
-                    <option>Serang</option>
-                    <option>Jakarta Selatan</option>
-                    <option>Jakarta Pusat</option>
-                    <option>Jakarta Barat</option>
-                    <option>Bandung</option>
-                    <option>Surabaya</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block font-label-sm text-[12px] text-text-primary mb-1">Alamat Lengkap *</label>
-                <textarea
-                  rows="3"
-                  value={formData.address}
-                  onChange={e => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full bg-surface border border-border-subtle rounded-lg p-2.5 sm:p-3 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-space-md">
-                <div>
-                  <label className="block font-label-sm text-[12px] text-text-primary mb-1">Kode Pos</label>
+                  <label className="block font-label-sm text-[12px] text-text-primary mb-1">
+                    Catatan Pengiriman (Opsional)
+                  </label>
                   <input
                     type="text"
-                    value={formData.postalCode}
-                    onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
-                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
-                  />
-                </div>
-                <div>
-                  <label className="block font-label-sm text-[12px] text-text-primary mb-1">Catatan Pengiriman</label>
-                  <input
-                    type="text"
-                    placeholder="Cth: Kirim ke lantai 3, hub ke satpam"
+                    placeholder="Cth: Titip di pos satpam atau resepsionis lantai 3"
                     value={formData.notes}
                     onChange={e => setFormData({ ...formData, notes: e.target.value })}
                     className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
-            </div>
+            ) : (
+              /* Fallback direct input form for users with no saved addresses */
+              <div className="flex flex-col gap-3 sm:gap-space-md">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-space-md">
+                  <div>
+                    <label className="block font-label-sm text-[12px] text-text-primary mb-1">Provinsi *</label>
+                    <select
+                      value={formData.province}
+                      onChange={e => setFormData({ ...formData, province: e.target.value })}
+                      className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary cursor-pointer"
+                    >
+                      <option>Banten</option>
+                      <option>DKI Jakarta</option>
+                      <option>Jawa Barat</option>
+                      <option>Jawa Tengah</option>
+                      <option>Jawa Timur</option>
+                      <option>Bali</option>
+                      <option>Sumatera Utara</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-label-sm text-[12px] text-text-primary mb-1">Kota / Kabupaten *</label>
+                    <input
+                      type="text"
+                      value={formData.city}
+                      onChange={e => setFormData({ ...formData, city: e.target.value })}
+                      placeholder="Cth: Tangerang Selatan"
+                      className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-label-sm text-[12px] text-text-primary mb-1">Alamat Lengkap *</label>
+                  <textarea
+                    rows="3"
+                    value={formData.address}
+                    onChange={e => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full bg-surface border border-border-subtle rounded-lg p-2.5 sm:p-3 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-space-md">
+                  <div>
+                    <label className="block font-label-sm text-[12px] text-text-primary mb-1">Kode Pos</label>
+                    <input
+                      type="text"
+                      value={formData.postalCode}
+                      onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
+                      className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-label-sm text-[12px] text-text-primary mb-1">Catatan Pengiriman</label>
+                    <input
+                      type="text"
+                      placeholder="Cth: Kirim ke lantai 3, hub ke satpam"
+                      value={formData.notes}
+                      onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                      className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 sm:px-3.5 sm:py-2.5 text-[13px] sm:text-[14px] text-text-primary focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>
@@ -1021,6 +1197,269 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      {/* MODAL 1: PILIH ALAMAT PENGIRIMAN (SHOPEE STYLE) */}
+      {showAddressPickerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-border-subtle overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-surface">
+              <h4 className="font-bold text-base text-text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[20px]">location_on</span>
+                Pilih Alamat Pengiriman
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowAddressPickerModal(false)}
+                className="text-text-secondary hover:text-text-primary p-1 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="p-6 max-h-[70vh] overflow-y-auto space-y-3">
+              {userAddresses.map((addr) => {
+                const isSelected = tempSelectedAddressId === addr.id;
+                return (
+                  <div
+                    key={addr.id}
+                    onClick={() => setTempSelectedAddressId(addr.id)}
+                    className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3.5 ${
+                      isSelected
+                        ? 'border-primary bg-blue-50/40 ring-1 ring-primary shadow-xs'
+                        : 'border-border-subtle hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="selected_checkout_address"
+                      checked={isSelected}
+                      onChange={() => setTempSelectedAddressId(addr.id)}
+                      className="mt-1 w-4 h-4 text-primary focus:ring-primary accent-primary cursor-pointer shrink-0"
+                    />
+                    <div className="flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-bold text-sm text-text-primary">{addr.recipientName}</span>
+                        <span className="text-xs text-text-secondary font-medium">({addr.phone})</span>
+                        {addr.label && (
+                          <span className="bg-gray-100 text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded border border-gray-200 uppercase">
+                            {addr.label}
+                          </span>
+                        )}
+                        {addr.isDefault && (
+                          <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-200">
+                            Utama
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-text-primary leading-relaxed">{addr.address}</p>
+                      <p className="text-xs text-text-secondary">
+                        {[addr.city, addr.province, addr.postalCode].filter(Boolean).join(', ')}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={handleOpenNewAddressModal}
+                className="w-full py-3 px-4 border-2 border-dashed border-border-subtle hover:border-primary rounded-xl text-xs font-bold text-primary flex items-center justify-center gap-2 transition-colors cursor-pointer bg-surface/50 hover:bg-blue-50/30"
+              >
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                Tambah Alamat Baru
+              </button>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border-subtle bg-surface">
+              <button
+                type="button"
+                onClick={() => setShowAddressPickerModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmAddressPicker}
+                className="px-5 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-hover shadow-sm transition-colors cursor-pointer"
+              >
+                Konfirmasi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: TAMBAH ALAMAT BARU (DARI CHECKOUT) */}
+      {showNewAddressModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-border-subtle overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-surface">
+              <h4 className="font-bold text-base text-text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[20px]">add_location</span>
+                Tambah Alamat Pengiriman Baru
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowNewAddressModal(false)}
+                className="text-text-secondary hover:text-text-primary p-1 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveNewAddressSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+              {/* Label Alamat */}
+              <div>
+                <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1.5">
+                  Tandai Sebagai
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {['Rumah', 'Kantor', 'Toko', 'Apartemen'].map(tag => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setNewAddrForm(f => ({ ...f, label: tag }))}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        newAddrForm.label === tag
+                          ? 'bg-primary text-white shadow-xs'
+                          : 'bg-surface border border-border-subtle text-text-secondary hover:border-primary/50'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recipient & Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                    Nama Penerima *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newAddrForm.recipientName}
+                    onChange={e => setNewAddrForm(f => ({ ...f, recipientName: e.target.value }))}
+                    placeholder="Cth: Budi Santoso"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                    Nomor Telepon *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newAddrForm.phone}
+                    onChange={e => setNewAddrForm(f => ({ ...f, phone: e.target.value }))}
+                    placeholder="Cth: 081234567890"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Province & City */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                    Provinsi *
+                  </label>
+                  <select
+                    value={newAddrForm.province}
+                    onChange={e => setNewAddrForm(f => ({ ...f, province: e.target.value }))}
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary cursor-pointer"
+                  >
+                    <option>DKI Jakarta</option>
+                    <option>Banten</option>
+                    <option>Jawa Barat</option>
+                    <option>Jawa Tengah</option>
+                    <option>Jawa Timur</option>
+                    <option>DI Yogyakarta</option>
+                    <option>Bali</option>
+                    <option>Sumatera Utara</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                    Kota / Kabupaten *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newAddrForm.city}
+                    onChange={e => setNewAddrForm(f => ({ ...f, city: e.target.value }))}
+                    placeholder="Cth: Jakarta Selatan"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Full Address */}
+              <div>
+                <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                  Alamat Lengkap *
+                </label>
+                <textarea
+                  rows="3"
+                  required
+                  value={newAddrForm.address}
+                  onChange={e => setNewAddrForm(f => ({ ...f, address: e.target.value }))}
+                  placeholder="Nama jalan, gedung, nomor rumah, RT/RW, kelurahan, kecamatan"
+                  className="w-full bg-surface border border-border-subtle rounded-lg p-3 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              {/* Postal Code */}
+              <div>
+                <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                  Kode Pos
+                </label>
+                <input
+                  type="text"
+                  value={newAddrForm.postalCode}
+                  onChange={e => setNewAddrForm(f => ({ ...f, postalCode: e.target.value }))}
+                  placeholder="Cth: 12345"
+                  className="w-full bg-surface border border-border-subtle rounded-lg px-3.5 py-2 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              {/* Checkbox Default */}
+              <label className="flex items-center gap-2 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={newAddrForm.isDefault}
+                  onChange={e => setNewAddrForm(f => ({ ...f, isDefault: e.target.checked }))}
+                  className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary cursor-pointer"
+                />
+                <span className="text-xs font-medium text-text-primary">
+                  Atur sebagai alamat utama
+                </span>
+              </label>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-border-subtle">
+                <button
+                  type="button"
+                  onClick={() => setShowNewAddressModal(false)}
+                  className="px-4 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface rounded-lg transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-hover shadow-sm transition-colors cursor-pointer"
+                >
+                  Simpan & Gunakan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

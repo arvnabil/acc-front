@@ -17,6 +17,7 @@ import SearchPage from './pages/SearchPage';
 import RfqPage from './pages/RfqPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import LacakPesananPage from './pages/LacakPesananPage';
 import BantuanPage from './pages/BantuanPage';
@@ -51,6 +52,7 @@ function App() {
           <Route path="/kategori" element={<CategoryMenuPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/lupa-password" element={<ForgotPasswordPage />} />
 
           {/* Pages dengan layout */}
           <Route element={<Layout />}>
