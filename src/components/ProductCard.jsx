@@ -13,7 +13,7 @@ import RentalBookingModal from './RentalBookingModal';
 import LicenseConfigModal from './LicenseConfigModal';
 
 const RENTAL_CAT_IDS = [13, 14]; // 'Sewa', 'Sewa Produk'
-const LICENSE_CAT_IDS = [28]; // 'Cloud' (software/license)
+const LICENSE_SKUS = ['CFQ7TTC0LH18', 'CFQ7TTC0LDPB'];
 
 // ─── Badge top-left ───────────────────────────────────────────────────────
 function CardBadge({ product, isRental, isLicense }) {
@@ -96,10 +96,7 @@ export default function ProductCard({ product }) {
 
   const isRental = (product?.category_ids || []).some(id => RENTAL_CAT_IDS.includes(id))
     || (product?.name || '').toLowerCase().includes('sewa ');
-  const isLicense = (product?.category_ids || []).some(id => LICENSE_CAT_IDS.includes(id))
-    || ['zoom', 'microsoft', 'google workspace', 'teams', 'adobe', 'lisensi', 'license'].some(
-        kw => (product?.name || '').toLowerCase().includes(kw)
-      );
+  const isLicense = LICENSE_SKUS.includes((product?.sku || '').toUpperCase());
 
   const image = (product.images?.[0] || '').split(',')[0].trim() ||
     `https://picsum.photos/seed/${product.sku || product.id}/400/400`;

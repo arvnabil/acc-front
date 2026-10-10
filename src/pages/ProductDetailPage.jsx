@@ -582,13 +582,10 @@ export default function ProductDetailPage() {
 
   // Detect product type
   const RENTAL_CAT_IDS = [13, 14]; // 'Sewa', 'Sewa Produk'
-  const LICENSE_CAT_IDS = [28]; // 'Cloud' (software/license)
+  const LICENSE_SKUS = ['CFQ7TTC0LH18', 'CFQ7TTC0LDPB'];
   const isRental = (product?.category_ids || []).some(id => RENTAL_CAT_IDS.includes(id))
     || (product?.name || '').toLowerCase().includes('sewa ');
-  const isLicense = (product?.category_ids || []).some(id => LICENSE_CAT_IDS.includes(id))
-    || ['zoom', 'microsoft', 'google workspace', 'teams', 'adobe', 'lisensi', 'license'].some(
-        kw => (product?.name || '').toLowerCase().includes(kw)
-      );
+  const isLicense = LICENSE_SKUS.includes((product?.sku || '').toUpperCase());
 
   // Rental price calculation
   const rentalDays = getRentalDays(rentalStartDate, rentalEndDate);
