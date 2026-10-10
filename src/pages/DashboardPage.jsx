@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import { getProducts } from '../services/productService';
+import productsIndex from '../data/products-index.json';
 import InvoiceModal from '../components/InvoiceModal';
 import ReviewModal from '../components/ReviewModal';
 
@@ -61,6 +62,9 @@ export default function DashboardPage() {
   // All reviews from localStorage across all products
   const [myReviews, setMyReviews] = useState([]);
 
+  // Product name -> slug lookup map (built from products-index at mount)
+  const [productSlugs, setProductSlugs] = useState({});
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
@@ -68,6 +72,15 @@ export default function DashboardPage() {
       setActiveTab(tabParam);
     }
   }, [location.search]);
+
+  useEffect(() => {
+    // Build name -> slug lookup from products-index (fast, synchronous)
+    const slugMap = {};
+    productsIndex.forEach(p => {
+      slugMap[p.name.toLowerCase()] = p.slug;
+    });
+    setProductSlugs(slugMap);
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -273,10 +286,11 @@ export default function DashboardPage() {
           </div>
 
           <div>
-            <span className="text-[12px] font-medium text-blue-200 block">Saldo E-Wallet</span>
+            <span className="text-[12px] font-medium text-blue-200 block">Saldo Klaim Poin</span>
             <div className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               Rp {(user.walletBalance ?? 1500000).toLocaleString('id-ID')}
             </div>
+            <span className="text-[10px] text-blue-200/70 mt-0.5 block">Akumulasi penukaran poin ke e-wallet</span>
           </div>
         </div>
 
@@ -511,7 +525,19 @@ export default function DashboardPage() {
                               myReviews.some(r => r.orderId === order.id && r.productName === item.name);
                             return (
                               <li key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 rounded-lg bg-surface/50 border border-border-subtle">
-                                <span className="flex-1 min-w-0 font-medium text-text-primary">• {item.name} ({item.qty}x)</span>
+                                <span className="flex-1 min-w-0 font-medium text-text-primary">
+                                •{' '}
+                                {productSlugs[item.name?.toLowerCase()] ? (
+                                  <Link
+                                    to={`/produk/${productSlugs[item.name.toLowerCase()]}`}
+                                    className="text-primary hover:underline font-semibold"
+                                  >
+                                    {item.name}
+                                  </Link>
+                                ) : (
+                                  item.name
+                                )}{' '}({item.qty}x)
+                              </span>
                                 <div className="flex items-center gap-3 shrink-0">
                                   <span className="font-semibold text-text-primary">Rp {(item.price * item.qty).toLocaleString('id-ID')}</span>
                                   <button
@@ -1324,7 +1350,18 @@ export default function DashboardPage() {
                                   {order.status}
                                 </span>
                               </div>
-                              <h4 className="font-bold text-sm text-text-primary">{item.name}</h4>
+                              <h4 className="font-bold text-sm text-text-primary">
+                                {productSlugs[item.name?.toLowerCase()] ? (
+                                  <Link
+                                    to={`/produk/${productSlugs[item.name.toLowerCase()]}`}
+                                    className="text-primary hover:underline"
+                                  >
+                                    {item.name}
+                                  </Link>
+                                ) : (
+                                  item.name
+                                )}
+                              </h4>
                               <p className="text-xs text-text-secondary">
                                 Kuantitas: {item.qty}x • Rp {(item.price || 0).toLocaleString('id-ID')}
                               </p>
@@ -1389,7 +1426,20 @@ export default function DashboardPage() {
                                   <div className="text-xs text-text-secondary flex items-center gap-2 mt-0.5">
                                     <span>{r.date}</span>
                                     {r.orderId && <span>• #{r.orderId}</span>}
-                                    {r.productName && <span>• <strong>{r.productName}</strong></span>}
+                                    {r.productName && (
+                                      <span>•{' '}
+                                        {productSlugs[r.productName?.toLowerCase()] ? (
+                                          <Link
+                                            to={`/produk/${productSlugs[r.productName.toLowerCase()]}`}
+                                            className="font-semibold text-primary hover:underline"
+                                          >
+                                            {r.productName}
+                                          </Link>
+                                        ) : (
+                                          <strong>{r.productName}</strong>
+                                        )}
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               </div>
