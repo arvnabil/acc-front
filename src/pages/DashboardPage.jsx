@@ -45,6 +45,7 @@ export default function DashboardPage() {
   const [ewalletPhone, setEwalletPhone] = useState(user?.phone || '0812-3456-7890');
   const [ewalletAccountName, setEwalletAccountName] = useState(user?.name || 'John Doe');
   const [selectedEwalletPackage, setSelectedEwalletPackage] = useState({ points: 500, rupiah: 50000 });
+  const [ewalletFeedback, setEwalletFeedback] = useState(null);
 
   // Loyalty Banner State
   const [showLoyaltyInfo, setShowLoyaltyInfo] = useState(false);
@@ -376,11 +377,11 @@ export default function DashboardPage() {
   function handleClaimEwalletSubmit(e) {
     e.preventDefault();
     if (!ewalletPhone.trim() || !ewalletAccountName.trim()) {
-      setFeedback({ type: 'error', message: 'Mohon lengkapi nomor telepon dan nama akun e-wallet.' });
+      setEwalletFeedback({ type: 'error', message: 'Mohon lengkapi nomor telepon dan nama pemilik akun e-wallet.' });
       return;
     }
     if ((user?.points || 0) < selectedEwalletPackage.points) {
-      setFeedback({ type: 'error', message: `Poin Anda tidak mencukupi untuk menukar ${selectedEwalletPackage.points} Poin.` });
+      setEwalletFeedback({ type: 'error', message: `Poin Anda tidak mencukupi untuk menukar ${selectedEwalletPackage.points} Poin.` });
       return;
     }
     const result = claimEwalletPoints({
@@ -391,9 +392,10 @@ export default function DashboardPage() {
       rupiah: selectedEwalletPackage.rupiah
     });
     if (result.success) {
-      setFeedback({
+      setShowEwalletForm(true);
+      setEwalletFeedback({
         type: 'success',
-        message: `Berhasil klaim saldo ${ewalletPlatform} Rp ${selectedEwalletPackage.rupiah.toLocaleString('id-ID')} ke ${ewalletPhone}!`
+        message: `Klaim saldo ${ewalletPlatform} senilai Rp ${selectedEwalletPackage.rupiah.toLocaleString('id-ID')} berhasil diproses ke nomor ${ewalletPhone} atas nama ${ewalletAccountName}!`
       });
     }
   }
@@ -1344,7 +1346,41 @@ export default function DashboardPage() {
 
                 {/* Collapsible Form Body — Mobile-Optimized */}
                 {showEwalletForm && (
-                  <div className="border-t border-border-subtle px-3.5 sm:px-6 pb-5 pt-4 space-y-5">
+                  <div className="border-t border-border-subtle px-3.5 sm:px-6 pb-5 pt-4 space-y-4">
+                    {/* Notifikasi Hasil Klaim Saldo E-Wallet Langsung di Atas Form */}
+                    {ewalletFeedback && (
+                      <div className={`p-4 rounded-xl flex items-start justify-between gap-3 transition-all ${
+                        ewalletFeedback.type === 'success'
+                          ? 'bg-emerald-50 border border-emerald-200 text-emerald-900 shadow-xs'
+                          : 'bg-red-50 border border-red-200 text-red-900 shadow-xs'
+                      }`}>
+                        <div className="flex items-start gap-2.5">
+                          <span className={`material-symbols-outlined text-[22px] mt-0.5 shrink-0 ${
+                            ewalletFeedback.type === 'success' ? 'text-emerald-600' : 'text-red-600'
+                          }`}>
+                            {ewalletFeedback.type === 'success' ? 'verified' : 'error'}
+                          </span>
+                          <div>
+                            <h5 className="text-xs sm:text-sm font-bold">
+                              {ewalletFeedback.type === 'success' ? `Klaim Saldo ${ewalletPlatform} Berhasil!` : 'Klaim Saldo Gagal'}
+                            </h5>
+                            <p className="text-[11px] sm:text-xs mt-0.5 leading-relaxed opacity-90">
+                              {ewalletFeedback.message}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEwalletFeedback(null)}
+                          className={`text-xs font-bold underline shrink-0 cursor-pointer ${
+                            ewalletFeedback.type === 'success' ? 'text-emerald-700 hover:text-emerald-900' : 'text-red-700 hover:text-red-900'
+                          }`}
+                        >
+                          Tutup
+                        </button>
+                      </div>
+                    )}
+
                     <form onSubmit={handleClaimEwalletSubmit} className="p-3.5 sm:p-5 bg-surface/60 rounded-xl border border-border-subtle space-y-4">
                       {/* Step 1: Pilih Platform */}
                       <div>
