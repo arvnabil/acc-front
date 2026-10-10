@@ -40,18 +40,19 @@ Didesain khusus untuk pasar B2B IT & Audio Visual dengan akumulasi nilai transak
 ### B. 6 Aturan & Kebijakan Sistem Loyalitas
 1. **Periode Kualifikasi Tier**: Dihitung berdasarkan tahun kalender (1 Jan – 31 Des). Status tier aktif berlaku hingga akhir tahun kalender berikutnya. Penurunan tier dibatasi maksimal 1 tingkat per tahun; kenaikan tier langsung aktif saat threshold tercapai.
 2. **Pemisahan Poin**:
-   - **Poin Tier**: Akumulasi poin belanja tahun kalender berjalan untuk menentukan kenaikan/pemeliharaan tier member.
-   - **Saldo Poin**: Poin reward yang dapat ditukarkan ke e-wallet atau voucher promo, berlaku 12–24 bulan sejak perolehan.
+   - **Poin Tier**: Akumulasi murni nilai belanja tahun kalender berjalan (1 Poin = Rp 10.000) untuk menentukan tier member. Bonus poin tier (5%–30%) tidak masuk ke Poin Tier.
+   - **Saldo Poin**: Poin reward yang dapat ditukarkan ke e-wallet atau voucher promo (termasuk bonus belanja tier & ulasan), berlaku 12–24 bulan sejak perolehan.
 3. **Faktur Pajak PKP Terbuka untuk Semua**: Faktur Pajak resmi dan e-Faktur diberikan kepada semua member terverifikasi yang melampirkan NPWP & SPPKP perusahaan, tanpa batasan level tier.
 4. **Perk Khusus Bronze**: Mengingat margin produk hardware IT tipis, Bronze mendapatkan voucher potongan nominal tetap (Rp 25.000) atau diskon khusus kategori aksesori/kabel/mounting.
-5. **Fasilitas B2B Enterprise (Gold, Platinum, Diamond)**: Fasilitas Project Pricing, alokasi stok prioritas, termin pembayaran bertempo (NET 14 / NET 30 hari), serta garansi & penggantian unit RMA Express.
+5. **Fasilitas B2B Enterprise (Gold, Platinum, Diamond)**: Fasilitas Project Pricing, alokasi stok prioritas, termin pembayaran bertempo (NET 14 / NET 30 hari via asesmen kredit), serta garansi & penggantian unit RMA Express.
 6. **Reward Ulasan Terverifikasi**: Bonus +50 Poin hanya diberikan untuk ulasan produk yang telah dibeli secara terverifikasi (dibatasi 1 ulasan per produk).
 
 ### C. Formula Perolehan & Penukaran Poin
 * **Perolehan Belanja**: `floor(Nilai Belanja / Rp 10.000)` Poin (konsisten 1 Poin per Rp 10.000 belanja tanpa pembulatan kasar per kelipatan juta).
-* **Penukaran ke Saldo E-Wallet**: 1 Poin = Rp 100 nilai saldo (500 Pts = Rp 50.000, 1.000 Pts = Rp 100.000, 2.500 Pts = Rp 250.000, 5.000 Pts = Rp 500.000). Dibatasi 1x per 30 hari untuk akun terverifikasi guna mitigasi risiko *cash-out*.
+* **Bonus Poin Belanja**: `floor(Poin Dasar × Persentase Bonus Tier)` (hanya ditambahkan ke Saldo Poin).
+* **Penukaran ke Saldo E-Wallet**: 1 Poin = Rp 100 nilai saldo (500 Pts = Rp 50.000, 1.000 Pts = Rp 100.000, 2.500 Pts = Rp 250.000). Maksimal penukaran 5.000 Poin (Rp 500.000) per bulan per akun, poin dapat ditukar setelah 30 hari diperoleh ke e-wallet terverifikasi.
 * **Penukaran ke Voucher Diskon (Rasio 1:1)**:
-  * **500 Poin** $\rightarrow$ Voucher Potongan Rp 50.000 (Min. order Rp 500.000)
+  * **750 Poin** $\rightarrow$ Voucher Potongan Rp 75.000 (Min. order Rp 750.000)
   * **1.500 Poin** $\rightarrow$ Voucher Potongan Rp 150.000 (Min. order Rp 1.500.000)
   * **3.000 Poin** $\rightarrow$ Voucher Potongan Rp 300.000 (Min. order Rp 3.000.000)
 * **Progress Bar di Dashboard**: Menampilkan kalkulasi sisa belanja secara realtime: *"Kurang Rp X lagi untuk naik ke level Y"*.

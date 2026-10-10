@@ -1277,17 +1277,17 @@ export default function DashboardPage() {
                           <p className="font-bold text-white text-xs uppercase tracking-wide">6 Aturan Utama Sistem Loyalitas:</p>
                           <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-white/90 leading-relaxed">
                             <li><strong>Periode Kualifikasi Tier</strong>: Dihitung berdasarkan tahun kalender (1 Jan – 31 Des). Status tier berlaku hingga akhir tahun berikutnya. Penurunan tier dibatasi maksimal 1 level per tahun, dan kenaikan tier langsung aktif saat threshold tercapai.</li>
-                            <li><strong>Pemisahan Poin Tier & Saldo Poin</strong>: <em>Poin Tier</em> dihitung dari belanja tahun berjalan untuk menentukan level member. <em>Saldo Poin</em> adalah poin yang dapat ditukar ke saldo e-wallet atau voucher promo dan berlaku 12–24 bulan sejak transaksi.</li>
+                            <li><strong>Pemisahan Poin Tier & Saldo Poin</strong>: <em>Poin Tier</em> dihitung murni dari belanja tahun berjalan (1 Poin = Rp 10.000). Bonus belanja tier (5%–30%) tidak masuk ke Poin Tier, melainkan langsung ke <em>Saldo Poin</em> yang dapat ditukarkan ke e-wallet/voucher (berlaku 12–24 bulan).</li>
                             <li><strong>Faktur Pajak PKP Terbuka untuk Semua</strong>: Faktur Pajak resmi diberikan kepada seluruh member terverifikasi yang melampirkan NPWP & SPPKP resmi perusahaan, tidak terbatas pada level tertentu.</li>
                             <li><strong>Perk Tier Bronze</strong>: Mendapatkan voucher nominal potongan Rp 25.000 / diskon khusus aksesori audio visual dan gratis ongkir 1x/bulan.</li>
-                            <li><strong>Keuntungan B2B Enterprise (Gold, Platinum, Diamond)</strong>: Akses Project Pricing khusus tender/pengadaan, prioritas alokasi stok, termin pembayaran B2B (NET 14 / NET 30 hari), serta garansi & RMA express.</li>
+                            <li><strong>Keuntungan B2B Enterprise (Gold, Platinum, Diamond)</strong>: Akses Project Pricing khusus tender/pengadaan, prioritas alokasi stok, termin pembayaran B2B (NET 14 / NET 30 hari setelah verifikasi kelayakan kredit), serta garansi & RMA express.</li>
                             <li><strong>Reward Ulasan Terverifikasi (+50 Poin)</strong>: Bonus 50 Poin hanya diberikan untuk ulasan produk yang telah dipesan dan diverifikasi (maksimal 1 ulasan per produk).</li>
                           </ol>
                         </div>
 
                         <div className="text-white/70 text-[10px] pt-1 flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[15px] text-amber-300">lightbulb</span>
-                          <span>Formula: Belanja Rp 10.000 = 1 Poin (floor(belanja / 10.000)). Nilai penukaran: 1 Pts = Rp 100 nilai saldo e-wallet & voucher.</span>
+                          <span>Formula: Belanja Rp 10.000 = 1 Poin (floor(belanja / 10.000)). Nilai penukaran: 1 Pts = Rp 100 saldo e-wallet & voucher. Limit e-wallet: Maks 5.000 Pts (Rp 500rb)/bulan.</span>
                         </div>
                       </div>
                     )}
@@ -1583,29 +1583,29 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Voucher 1: 500 Poin -> Rp 50.000 */}
+                  {/* Voucher 1: 750 Poin -> Rp 75.000 */}
                   <div className="border border-border-subtle rounded-xl p-4 bg-amber-50/40 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">VOUCHER 50K</span>
-                        <span className="text-xs font-bold text-amber-700">500 Pts</span>
+                        <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">VOUCHER 75K</span>
+                        <span className="text-xs font-bold text-amber-700">750 Pts</span>
                       </div>
-                      <h5 className="font-bold text-text-primary text-sm">Potongan Rp 50.000 Aksesori & Hardware</h5>
-                      <p className="text-xs text-text-secondary mt-1">Min. belanja Rp 500.000 • Berlaku 30 Hari</p>
+                      <h5 className="font-bold text-text-primary text-sm">Potongan Rp 75.000 Aksesori & Hardware</h5>
+                      <p className="text-xs text-text-secondary mt-1">Min. belanja Rp 750.000 • Berlaku 30 Hari</p>
                     </div>
                     <button
-                      onClick={() => handleRedeemVoucher(500, {
+                      onClick={() => handleRedeemVoucher(750, {
                         id: `VCH-${Date.now()}`,
-                        code: `ACC50K-${Math.floor(1000 + Math.random() * 9000)}`,
-                        title: 'Voucher Potongan Rp 50.000 Aksesori & Hardware',
-                        minOrder: 500000,
-                        discount: 50000,
+                        code: `ACC75K-${Math.floor(1000 + Math.random() * 9000)}`,
+                        title: 'Voucher Potongan Rp 75.000 Aksesori & Hardware',
+                        minOrder: 750000,
+                        discount: 75000,
                         expiry: '30 Hari ke depan'
                       })}
-                      disabled={(user.points || 0) < 500}
+                      disabled={(user.points || 0) < 750}
                       className="mt-4 w-full bg-amber-600 hover:bg-amber-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer"
                     >
-                      {(user.points || 0) >= 500 ? 'Tukar 500 Poin' : 'Poin Kurang'}
+                      {(user.points || 0) >= 750 ? 'Tukar 750 Poin' : 'Poin Kurang'}
                     </button>
                   </div>
 

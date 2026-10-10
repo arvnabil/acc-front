@@ -1,6 +1,8 @@
-# 💎 Dokumen Spesifikasi Resmi: Sistem Loyalitas, Poin & Tier Member Accommerce
+# 💎 Dokumen Spesifikasi Resmi: Sistem Loyalitas, Poin & Tier Member Accommerce (Revisi 2)
 
 Dokumen ini merupakan panduan arsitektur dan spesifikasi bisnis lengkap untuk sistem loyalitas **Accommerce Points & Member Tier System** pada platform **Accommerce.id** (B2B & Enterprise IT / Audio Visual Solution).
+
+**Catatan revisi 2:** rumus perolehan poin diperbaiki, nilai penukaran voucher disamakan dengan nilai poin, penukaran e-wallet diberi batas, dan bonus poin dipastikan hanya masuk ke saldo poin.
 
 ---
 
@@ -67,6 +69,8 @@ Program Loyalitas Accommerce dirancang khusus untuk memotivasi pelanggan retail 
 * **Bonus Poin Belanja 30%** per transaksi.
 * **Hadiah Anniversary Korporat & Hampers Eksklusif Akhir Tahun**.
 
+> **Catatan termin pembayaran:** termin NET hanya diberikan setelah verifikasi kelayakan kredit perusahaan, bukan otomatis saat tier tercapai.
+
 ---
 
 ## 4. 📜 Kebijakan & Aturan Operasional Sistem Loyalitas
@@ -80,10 +84,12 @@ Program Loyalitas Accommerce dirancang khusus untuk memotivasi pelanggan retail 
 ### 2. Pemisahan "Poin Tier" dan "Saldo Poin"
 * **Poin Tier (*Tier Qualification Points*)**:
   * Dihitung murni dari total nilai belanja tahun berjalan (1 Poin = Rp 10.000 belanja).
+  * **Bonus poin tier (5% – 30%) tidak dihitung ke Poin Tier**, hanya masuk ke Saldo Poin, agar member tidak naik level lebih cepat karena bonus.
   * Tidak berkurang saat member melakukan penukaran e-wallet atau voucher.
   * Direset setiap awal tahun kalender (1 Januari) untuk siklus kualifikasi baru.
 * **Saldo Poin (*Spendable Balance*)**:
   * Poin reward riil yang dapat ditukarkan ke uang saku (e-wallet) atau voucher diskon.
+  * Terdiri dari poin dasar belanja ditambah bonus poin tier dan poin ulasan.
   * Berkurang saat member mengklaim saldo e-wallet atau menukar kupon.
   * Memiliki masa berlaku **12 hingga 24 bulan** sejak tanggal transaksi perolehan.
 
@@ -95,52 +101,62 @@ Program Loyalitas Accommerce dirancang khusus untuk memotivasi pelanggan retail 
 * Hanya berlaku untuk produk dari pesanan dengan status **Selesai**.
 * Dibatasi **maksimal 1 ulasan per produk** untuk mencegah spam dan kecurangan.
 
-### 5. Kebijakan Termin Pembayaran B2B & Mitigasi Risiko Piutang
-* Pemberian termin pembayaran kredit (*Payment Terms*) merupakan hak istimewa yang memiliki risiko piutang dagang (*Credit Risk*), sehingga diterapkan berjenjang secara selektif:
-  * **Classic, Bronze, Silver**: Pembayaran tunai/gateway, kartu kredit, atau CBD (*Cash Before Delivery*).
-  * **Gold**: Fasilitas penerbitan Purchase Order (PO) resmi dengan evaluasi kredit fleksibel berdasarkan riwayat transaksi.
-  * **Platinum**: Fasilitas kredit resmi **NET 14 Hari** (wajib melampirkan NPWP perusahaan, SPPKP, dan PO resmi bermaterai/bertanda tangan direksi).
-  * **Diamond**: Fasilitas kredit prioritas **NET 30 Hari** dengan plafon kredit enterprise khusus setelah verifikasi tim *Credit Assessment*.
-
-### 6. Kebijakan Anti-Fraud & Batasan Penukaran Saldo E-Wallet (*Cash-Out Protection*)
-* Karena penukaran ke saldo e-wallet merupakan penarikan uang tunai langsung (*cash-out*) dari kas perusahaan, aturan berikut diberlakukan untuk mencegah penyalahgunaan dan akun palsu:
-  1. **Syarat Transaksi Terverifikasi**: Penukaran ke e-wallet hanya diizinkan untuk member yang telah memiliki **minimal 1 pesanan hardware terverifikasi dengan status Selesai** (mencegah akun bot/palsu yang hanya mengumpulkan poin gratis dari registrasi/ulasan).
-  2. **Limit Frekuensi & Plafon Penukaran**: Dibatasi maksimal **1 kali penukaran per 30 hari** per akun dengan plafon akumulasi penarikan maksimal **Rp 500.000 per bulan**.
-  3. **Verifikasi Identitas Akun (KYC Ringan)**: Nomor HP e-wallet dan nama rekening penerima harus terdaftar aktif dan sesuai dengan data profil member/PIC terdaftar.
-  4. **Retensi Ekosistem Belanja**: Member didorong untuk memilih opsi penukaran **Voucher Belanja Accommerce** (rasio 1:1, tanpa batasan frekuensi bulanan) guna menjaga perputaran dana tetap berada di dalam platform.
-
-### 7. Kalkulasi Sisa Belanja di Dashboard
+### 5. Kalkulasi Sisa Belanja di Dashboard
 * Dashboard menampilkan progress bar interaktif dengan konversi nominal:
-  $$\text{Sisa Belanja (Rp)} = (\text{Target Poin Tier Berikutnya} - \text{Poin Tier Saat Ini}) \times \text{Rp } 10.000$$
-  *Contoh*: Menuju Gold (7.500 Pts), user memiliki 5.000 Pts $\rightarrow$ Kurang 2.500 Pts atau **Kurang Rp 25.000.000 lagi**.
+
+  `Sisa Belanja (Rp) = (Target Poin Tier Berikutnya − Poin Tier Saat Ini) × Rp 10.000`
+
+  *Contoh*: Menuju Gold (7.500 Pts), user memiliki 5.000 Pts → Kurang 2.500 Pts atau **Kurang Rp 25.000.000 lagi**.
+
+### 6. Kapan Poin Diberikan & Ditarik Kembali
+* Poin dasar dan bonus baru masuk setelah pesanan berstatus **Selesai** dan melewati masa retur/RMA (disarankan 7 hari).
+* Jika pesanan diretur atau dibatalkan, poin yang sudah diberikan ditarik kembali, baik dari Poin Tier maupun Saldo Poin.
 
 ---
 
 ## 5. 💰 Skema Konversi Poin & Penukaran
 
 ### A. Rasio Perolehan Poin
-$$\text{Poin Didapat} = \left\lfloor \frac{\text{Nilai Belanja}}{\text{Rp } 10.000} \right\rfloor \text{ Poin}$$
+`Poin Dasar = floor(Nilai Belanja / Rp 10.000)`
 
-* **Konsisten 1 Poin per Rp 10.000 belanja** tanpa pembulatan kasar per kelipatan juta.
-* *Contoh*:
-  * Belanja **Rp 990.000** $\rightarrow$ Mendapatkan **99 Poin**.
-  * Belanja **Rp 1.950.000** $\rightarrow$ Mendapatkan **195 Poin**.
-  * Belanja **Rp 48.500.000** (Logitech Rally Bar) $\rightarrow$ Mendapatkan **4.850 Poin**.
+`Bonus Poin = floor(Poin Dasar × Persentase Bonus Tier)`
+
+*Contoh*: belanja Rp 1.900.000 → 190 poin dasar (sebelumnya hanya 100 poin karena pembulatan per Rp 1 juta). Member Gold (bonus 10%) → +19 poin ke Saldo Poin.
 
 ### B. Rasio Penukaran ke Saldo E-Wallet
 * Nilai tukar tetap: **1 Poin = Rp 100 Saldo Uang Nyata**.
 * Saldo dapat ditransfer ke: **GoPay, OVO, DANA, ShopeePay, dan LinkAja**.
-* Pilihan paket nominal penukaran:
-  * **500 Poin** $\rightarrow$ Rp 50.000 Saldo E-Wallet
-  * **1.000 Poin** $\rightarrow$ Rp 100.000 Saldo E-Wallet
-  * **2.500 Poin** $\rightarrow$ Rp 250.000 Saldo E-Wallet
-  * **5.000 Poin** $\rightarrow$ Rp 500.000 Saldo E-Wallet *(Batas maksimal per bulan)*
-* *Catatan*: Tunduk pada kebijakan batasan penukaran 1x per bulan untuk akun terverifikasi.
+* Pilihan nominal penukaran:
+  * **500 Poin** → Rp 50.000 Saldo E-Wallet
+  * **1.000 Poin** → Rp 100.000 Saldo E-Wallet
+  * **2.500 Poin** → Rp 250.000 Saldo E-Wallet
+* **Batas pengamanan penukaran e-wallet:**
+  * Maksimal **5.000 Poin (Rp 500.000) per bulan** per akun.
+  * Poin hanya dapat ditukar setelah **30 hari** sejak diperoleh.
+  * E-wallet tujuan harus atas nama yang sama dengan akun terverifikasi (atau perusahaan yang terdaftar).
+  * Satu e-wallet hanya boleh terhubung ke satu akun member.
 
-### C. Penukaran ke Voucher Diskon Belanja (Rasio 1:1)
-Semua nominal voucher disamakan persis dengan nilai intrinsik poin (1 Poin = Rp 100) guna melindungi margin produk dari kebocoran (*margin leakage*):
-* **500 Poin** $\rightarrow$ **Voucher Potongan Rp 50.000** (Min. belanja Rp 500.000 • Berlaku 30 Hari).
-* **1.500 Poin** $\rightarrow$ **Voucher Potongan Rp 150.000** (Min. belanja Rp 1.500.000 • Berlaku 30 Hari).
-* **3.000 Poin** $\rightarrow$ **Voucher Potongan Rp 300.000** (Min. belanja Rp 3.000.000 • Berlaku 30 Hari).
+### C. Penukaran ke Voucher Diskon
+Semua voucher bernilai sama dengan nilai poin yang ditukar (1 Poin = Rp 100), dengan minimum order untuk melindungi margin:
 
-*Keunggulan Voucher*: Dapat ditukarkan kapan saja tanpa batasan kuota penarikan bulanan dan langsung tersimpan di tab **Voucher & Promo**.
+* **750 Poin**: Kupon Potongan Rp 75.000 (Min. order Rp 750.000).
+* **1.500 Poin**: Kupon Potongan Rp 150.000 (Min. order Rp 1.500.000).
+* **3.000 Poin**: Kupon Potongan Rp 300.000 (Min. order Rp 3.000.000).
+
+*Kupon diskon persen (15%) dihapus karena nilainya bisa melebihi nilai poin yang ditukar.*
+
+---
+
+## 6. 📋 Ringkasan Perubahan dari Versi Sebelumnya
+
+| Bagian | Sebelumnya | Sekarang |
+| :--- | :--- | :--- |
+| Rumus poin (5A) | `floor(belanja / Rp 1 jt) × 100` | `floor(belanja / Rp 10.000)` |
+| Voucher 600 Poin | Diskon 15% maks. Rp 150.000 | Dihapus |
+| Voucher 1.200 Poin | Potongan Rp 150.000 | Diganti 1.500 Poin → Rp 150.000 |
+| Voucher 2.000 Poin | Potongan Rp 300.000 | Diganti 3.000 Poin → Rp 300.000 |
+| Voucher baru | – | 750 Poin → Rp 75.000 |
+| Penukaran e-wallet | Tanpa batas | Maks. 5.000 Poin/bulan, tunggu 30 hari, e-wallet terverifikasi |
+| Bonus poin tier | Tidak dijelaskan | Hanya ke Saldo Poin, bukan Poin Tier |
+| Poin saat retur | Tidak dijelaskan | Poin ditarik kembali, diberikan setelah masa retur |
+| Termin NET | Otomatis per tier | Perlu verifikasi kelayakan kredit |
