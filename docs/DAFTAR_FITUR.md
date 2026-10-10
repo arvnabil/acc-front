@@ -39,9 +39,10 @@ Didesain khusus untuk pasar B2B IT & Audio Visual dengan akumulasi nilai transak
 
 ### B. 6 Aturan & Kebijakan Sistem Loyalitas
 1. **Periode Kualifikasi Tier**: Dihitung berdasarkan tahun kalender (1 Jan – 31 Des). Status tier aktif berlaku hingga akhir tahun kalender berikutnya. Penurunan tier dibatasi maksimal 1 tingkat per tahun; kenaikan tier langsung aktif saat threshold tercapai.
-2. **Pemisahan Poin**:
-   - **Poin Tier**: Akumulasi murni nilai belanja tahun kalender berjalan (1 Poin = Rp 10.000) untuk menentukan tier member. Bonus poin tier (5%–30%) tidak masuk ke Poin Tier.
-   - **Saldo Poin**: Poin reward yang dapat ditukarkan ke e-wallet atau voucher promo (termasuk bonus belanja tier & ulasan), berlaku 12–24 bulan sejak perolehan.
+2. **Pemisahan Poin (Database & UI)**:
+   - **Poin Tier (`tier_points`)**: Akumulasi murni nilai belanja tahun kalender berjalan (1 Poin = Rp 10.000) untuk menentukan tier member dan progress bar naik level. Bonus poin tier (5%–30%) tidak masuk ke Poin Tier, dan nilai ini tidak berkurang saat redeem.
+   - **Saldo Poin (`points_balance`)**: Poin reward yang dapat ditukarkan ke e-wallet (Rp 100/poin) atau voucher promo (termasuk bonus belanja tier & ulasan), berlaku 12–24 bulan sejak perolehan.
+   - *Catatan Dashboard*: Kartu *"Nilai Konversi Poin"* wajib merujuk ke `points_balance × Rp 100`, sedangkan progress bar naik level selalu merujuk ke `tier_points`.
 3. **Faktur Pajak PKP Terbuka untuk Semua**: Faktur Pajak resmi dan e-Faktur diberikan kepada semua member terverifikasi yang melampirkan NPWP & SPPKP perusahaan, tanpa batasan level tier.
 4. **Perk Khusus Bronze**: Mengingat margin produk hardware IT tipis, Bronze mendapatkan voucher potongan nominal tetap (Rp 25.000) atau diskon khusus kategori aksesori/kabel/mounting.
 5. **Fasilitas B2B Enterprise (Gold, Platinum, Diamond)**: Fasilitas Project Pricing, alokasi stok prioritas, termin pembayaran bertempo (NET 14 / NET 30 hari via asesmen kredit), serta garansi & penggantian unit RMA Express.

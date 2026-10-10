@@ -93,6 +93,23 @@ Program Loyalitas Accommerce dirancang khusus untuk memotivasi pelanggan retail 
   * Berkurang saat member mengklaim saldo e-wallet atau menukar kupon.
   * Memiliki masa berlaku **12 hingga 24 bulan** sejak tanggal transaksi perolehan.
 
+> ⚠️ **Catatan Penting: Mengapa Poin Tier & Saldo Poin Terlihat Sama di Awal, Lalu Divergen?**
+>
+> Pada transaksi awal (misal belanja Rp 4.500.000), Poin Tier dan Saldo Poin sama-sama bernilai **450 Poin**. Hal ini murni kebetulan angka awal. Keduanya **wajib diperlakukan sebagai entitas berbeda** karena nilainya akan langsung divergen (berbeda) pada kondisi-kondisi berikut:
+> 1. **Member Menukar Poin**: Saldo Poin berkurang (contoh: tukar 450 poin ke e-wallet $\rightarrow$ saldo menjadi 0), sedangkan Poin Tier tetap 450 (level member tidak turun).
+> 2. **Bonus Belanja Tier & Ulasan Masuk**: Saldo Poin bertambah (bonus tier 5%–30% atau +50 poin per ulasan), sedangkan Poin Tier **tidak ikut naik** (mencegah lonjakan tier buatan).
+> 3. **Kedaluwarsa Poin**: Saldo Poin hangus setelah 12–24 bulan sejak perolehan, sedangkan Poin Tier hanya direset serentak tiap 1 Januari.
+> 4. **Pesanan Diretur / Dibatalkan**: Poin ditarik kembali secara proporsional dari kedua nilai (Poin Tier dan Saldo Poin).
+>
+> 🛠️ **Rekomendasi Arsitektur Database & Implementasi Kode:**
+> * Simpan sebagai **dua kolom terpisah** pada tabel user/member:
+>   * `tier_points` (INTEGER): Untuk akumulasi belanja tahunan & kualifikasi level.
+>   * `points_balance` (INTEGER): Untuk saldo reward aktif yang dapat ditukarkan.
+> * **Aturan Tampilan di Dashboard**:
+>   * Kartu **"Nilai Konversi Poin"** (misal Rp 45.000) **WAJIB dihitung dari `points_balance × Rp 100`**, BUKAN dari `tier_points`. Jika salah mengambil variabel, setelah penukaran kartu ini akan tetap menampilkan nilai lama.
+>   * **Progress Bar** (*"Kurang Rp X lagi untuk naik tier"*) dan penentuan status badge level **WAJIB menggunakan `tier_points`**.
+>   * Berikan label dan penjelasan UI yang tegas agar pelanggan tidak mengalami kebingungan antara poin untuk naik level vs poin uang saku.
+
 ### 3. Faktur Pajak PKP Terbuka untuk Seluruh Member
 * Faktur Pajak resmi bukan merupakan perk eksklusif tier atas, melainkan hak seluruh pelanggan berbadan hukum/pribadi yang melampirkan NPWP & SPPKP resmi perusahaan.
 
@@ -106,7 +123,8 @@ Program Loyalitas Accommerce dirancang khusus untuk memotivasi pelanggan retail 
 
   `Sisa Belanja (Rp) = (Target Poin Tier Berikutnya − Poin Tier Saat Ini) × Rp 10.000`
 
-  *Contoh*: Menuju Gold (7.500 Pts), user memiliki 5.000 Pts → Kurang 2.500 Pts atau **Kurang Rp 25.000.000 lagi**.
+  *Contoh*: Menuju Gold (7.500 Pts), user memiliki 5.000 Pts tier → Kurang 2.500 Pts tier atau **Kurang Rp 25.000.000 belanja lagi**.
+  *(Catatan: Perhitungan ini selalu merujuk ke `tier_points`, tidak terpengaruh oleh penukaran saldo poin ke e-wallet).*
 
 ### 6. Kapan Poin Diberikan & Ditarik Kembali
 * Poin dasar dan bonus baru masuk setelah pesanan berstatus **Selesai** dan melewati masa retur/RMA (disarankan 7 hari).
