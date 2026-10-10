@@ -1295,67 +1295,89 @@ export default function DashboardPage() {
 
               {/* Sub-section 1: Klaim Saldo E-Wallet — Collapsible Accordion */}
               <div className="bg-white rounded-xl border border-border-subtle shadow-sm overflow-hidden">
-                {/* Accordion Header / Toggle Button */}
+                {/* Accordion Header / Toggle Button — Mobile-Optimized */}
                 <button
                   type="button"
                   onClick={() => setShowEwalletForm(v => !v)}
-                  className="w-full flex items-center justify-between gap-3 px-6 py-4 hover:bg-surface/50 transition-colors cursor-pointer"
+                  className="w-full p-4 sm:px-6 sm:py-4 hover:bg-surface/50 transition-colors cursor-pointer text-left"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-primary text-[20px]">account_balance_wallet</span>
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Left: Icon + Title */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[22px]">account_balance_wallet</span>
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-sm sm:text-base font-bold text-text-primary leading-tight">
+                          Klaim Saldo E-Wallet dari Poin
+                        </h4>
+                        <p className="text-[11px] sm:text-xs text-text-secondary mt-0.5 truncate">
+                          Tukar poin loyalty Anda menjadi saldo e-wallet
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-left">
-                      <h4 className="text-sm font-bold text-text-primary">Klaim Saldo E-Wallet dari Poin</h4>
-                      <p className="text-[11px] text-text-secondary mt-0.5">Tukar poin loyalty Anda menjadi saldo GoPay, OVO, DANA, ShopeePay, LinkAja</p>
+
+                    {/* Right: Badge (Desktop) & Chevron Button */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="hidden sm:inline-flex text-[11px] font-bold text-primary bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg whitespace-nowrap">
+                        {(user.points || 0).toLocaleString('id-ID')} Poin tersedia
+                      </span>
+                      <div className={`w-8 h-8 rounded-full bg-surface sm:bg-transparent flex items-center justify-center transition-transform duration-200 ${showEwalletForm ? 'rotate-180' : 'rotate-0'}`}>
+                        <span className="material-symbols-outlined text-text-secondary text-[22px]">
+                          expand_more
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className={`flex items-center gap-2 shrink-0 transition-all`}>
-                    <span className="text-[11px] font-bold text-primary bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg">
-                      {(user.points || 0).toLocaleString('id-ID')} Poin tersedia
+
+                  {/* Mobile-only secondary info bar to give title full breathing room */}
+                  <div className="flex sm:hidden items-center justify-between mt-2.5 pt-2 border-t border-border-subtle/70 text-[11px]">
+                    <span className="text-text-secondary flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                      Poin Tersedia:
                     </span>
-                    <span className={`material-symbols-outlined text-text-secondary text-[22px] transition-transform duration-200 ${showEwalletForm ? 'rotate-180' : 'rotate-0'}`}>
-                      expand_more
+                    <span className="font-bold text-primary bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md">
+                      {(user.points || 0).toLocaleString('id-ID')} Poin
                     </span>
                   </div>
                 </button>
 
-                {/* Collapsible Form Body */}
+                {/* Collapsible Form Body — Mobile-Optimized */}
                 {showEwalletForm && (
-                  <div className="border-t border-border-subtle px-6 pb-6 space-y-6 pt-5">
-                    <form onSubmit={handleClaimEwalletSubmit} className="p-5 bg-surface/60 rounded-xl border border-border-subtle space-y-4">
+                  <div className="border-t border-border-subtle px-3.5 sm:px-6 pb-5 pt-4 space-y-5">
+                    <form onSubmit={handleClaimEwalletSubmit} className="p-3.5 sm:p-5 bg-surface/60 rounded-xl border border-border-subtle space-y-4">
                       {/* Step 1: Pilih Platform */}
                       <div>
                         <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-2">
                           1. Pilih Platform E-Wallet Tujuan
                         </label>
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                        <div className="grid grid-cols-5 gap-1 sm:gap-2.5">
                           {[
-                            { name: 'GoPay', color: 'bg-emerald-600 text-white', icon: 'payments' },
-                            { name: 'OVO', color: 'bg-purple-700 text-white', icon: 'credit_card' },
-                            { name: 'DANA', color: 'bg-sky-500 text-white', icon: 'account_balance_wallet' },
-                            { name: 'ShopeePay', color: 'bg-orange-500 text-white', icon: 'shopping_bag' },
-                            { name: 'LinkAja', color: 'bg-red-600 text-white', icon: 'send_to_mobile' },
+                            { name: 'GoPay', shortName: 'GoPay', color: 'bg-emerald-600 text-white', icon: 'payments' },
+                            { name: 'OVO', shortName: 'OVO', color: 'bg-purple-700 text-white', icon: 'credit_card' },
+                            { name: 'DANA', shortName: 'DANA', color: 'bg-sky-500 text-white', icon: 'account_balance_wallet' },
+                            { name: 'ShopeePay', shortName: 'Shopee', color: 'bg-orange-500 text-white', icon: 'shopping_bag' },
+                            { name: 'LinkAja', shortName: 'LinkAja', color: 'bg-red-600 text-white', icon: 'send_to_mobile' },
                           ].map((pl) => (
                             <button
                               key={pl.name}
                               type="button"
                               onClick={() => setEwalletPlatform(pl.name)}
-                              className={`p-3 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                              className={`py-2 px-1 sm:p-3 rounded-xl font-bold text-[10px] sm:text-xs flex flex-col items-center justify-center gap-1 transition-all cursor-pointer border ${
                                 ewalletPlatform === pl.name
                                   ? `${pl.color} ring-2 ring-primary ring-offset-1 shadow-sm`
                                   : 'bg-white border-border-subtle text-text-primary hover:border-primary/50'
                               }`}
                             >
-                              <span className="material-symbols-outlined text-[20px]">{pl.icon}</span>
-                              <span>{pl.name}</span>
+                              <span className="material-symbols-outlined text-[18px] sm:text-[20px]">{pl.icon}</span>
+                              <span className="truncate max-w-full">{pl.shortName}</span>
                             </button>
                           ))}
                         </div>
                       </div>
 
                       {/* Step 2: Nomor HP & Nama Pemilik */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
                             2. Nomor HP Akun {ewalletPlatform} *
@@ -1389,7 +1411,7 @@ export default function DashboardPage() {
                         <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-2">
                           4. Pilih Nominal Penukaran Poin
                         </label>
-                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                           {[
                             { points: 500, rupiah: 50000, label: '500 Poin' },
                             { points: 1000, rupiah: 100000, label: '1.000 Poin' },
@@ -1402,14 +1424,14 @@ export default function DashboardPage() {
                               <div
                                 key={pkg.points}
                                 onClick={() => setSelectedEwalletPackage(pkg)}
-                                className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                                className={`p-2.5 sm:p-3.5 rounded-xl border cursor-pointer transition-all ${
                                   isSelected
                                     ? 'bg-blue-50/60 border-primary ring-1 ring-primary shadow-xs'
                                     : 'bg-white border-border-subtle hover:border-gray-300'
                                 }`}
                               >
-                                <div className="flex items-center justify-between mb-1.5">
-                                  <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-[10px] sm:text-xs font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
                                     {pkg.label}
                                   </span>
                                   <input
@@ -1417,14 +1439,14 @@ export default function DashboardPage() {
                                     name="ewallet_package"
                                     checked={isSelected}
                                     onChange={() => setSelectedEwalletPackage(pkg)}
-                                    className="accent-primary cursor-pointer"
+                                    className="accent-primary cursor-pointer w-3.5 h-3.5"
                                   />
                                 </div>
-                                <div className="text-lg font-extrabold text-text-primary">
+                                <div className="text-sm sm:text-lg font-extrabold text-text-primary">
                                   Rp {pkg.rupiah.toLocaleString('id-ID')}
                                 </div>
-                                <p className={`text-[11px] mt-0.5 font-medium ${isAffordable ? 'text-emerald-600' : 'text-red-400'}`}>
-                                  {isAffordable ? '✓ Poin mencukupi' : 'Poin belum cukup'}
+                                <p className={`text-[10px] sm:text-[11px] mt-0.5 font-medium ${isAffordable ? 'text-emerald-600' : 'text-red-400'}`}>
+                                  {isAffordable ? '✓ Poin cukup' : 'Poin kurang'}
                                 </p>
                               </div>
                             );
@@ -1440,7 +1462,7 @@ export default function DashboardPage() {
                         <button
                           type="submit"
                           disabled={(user.points || 0) < selectedEwalletPackage.points}
-                          className="px-6 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5 self-start sm:self-auto"
+                          className="w-full sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                         >
                           <span className="material-symbols-outlined text-[18px]">verified</span>
                           Klaim Saldo {ewalletPlatform} Sekarang
@@ -1450,48 +1472,48 @@ export default function DashboardPage() {
 
                     {/* Status & Riwayat Klaim Saldo E-Wallet */}
                     <div className="border-t border-border-subtle pt-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h5 className="font-bold text-sm text-text-primary flex items-center gap-2">
-                          <span className="material-symbols-outlined text-emerald-600 text-[20px]">history</span>
-                          Status & Riwayat Klaim Saldo E-Wallet
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="font-bold text-xs sm:text-sm text-text-primary flex items-center gap-1.5 sm:gap-2">
+                          <span className="material-symbols-outlined text-emerald-600 text-[18px] sm:text-[20px]">history</span>
+                          Riwayat Klaim Saldo E-Wallet
                         </h5>
-                        <span className="text-xs text-text-secondary">
+                        <span className="text-[11px] sm:text-xs text-text-secondary">
                           {(user.ewalletClaims || []).length} transaksi
                         </span>
                       </div>
 
                       {(user.ewalletClaims || []).length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="space-y-2.5">
                           {(user.ewalletClaims || []).map((cl) => (
                             <div
                               key={cl.id}
-                              className="p-4 rounded-xl border border-border-subtle bg-white hover:border-gray-300 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+                              className="p-3 sm:p-4 rounded-xl border border-border-subtle bg-white hover:border-gray-300 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 shadow-2xs"
                             >
                               <div className="space-y-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span className="font-bold text-xs font-mono text-primary bg-blue-50 px-2 py-0.5 rounded">
+                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                  <span className="font-bold text-[10px] sm:text-xs font-mono text-primary bg-blue-50 px-1.5 py-0.5 rounded">
                                     {cl.id}
                                   </span>
-                                  <span className="font-bold text-sm text-text-primary">
+                                  <span className="font-bold text-xs sm:text-sm text-text-primary">
                                     {cl.platform} • {cl.accountName}
                                   </span>
-                                  <span className="text-xs font-mono text-text-secondary">
+                                  <span className="text-[11px] font-mono text-text-secondary">
                                     ({cl.phone})
                                   </span>
-                                  <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[13px]">check_circle</span>
-                                    {cl.status || 'Berhasil Ditransfer'}
+                                  <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-[11px] font-bold px-2 py-0.2 rounded-full flex items-center gap-0.5">
+                                    <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                                    {cl.status || 'Berhasil'}
                                   </span>
                                 </div>
-                                <p className="text-[11px] text-text-secondary">
-                                  Waktu: {cl.date} • No. Ref: <span className="font-mono">{cl.refNumber || 'TRX-8927163'}</span>
+                                <p className="text-[10px] sm:text-[11px] text-text-secondary">
+                                  {cl.date} • Ref: <span className="font-mono">{cl.refNumber || 'TRX-8927163'}</span>
                                 </p>
                               </div>
                               <div className="sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 flex sm:flex-col justify-between items-baseline sm:items-end">
-                                <div className="text-base font-extrabold text-emerald-600">
+                                <div className="text-sm sm:text-base font-extrabold text-emerald-600">
                                   +Rp {(cl.amount || 0).toLocaleString('id-ID')}
                                 </div>
-                                <div className="text-[11px] font-bold text-amber-700">
+                                <div className="text-[10px] sm:text-[11px] font-bold text-amber-700">
                                   -{cl.points} Poin
                                 </div>
                               </div>
@@ -1499,8 +1521,8 @@ export default function DashboardPage() {
                           ))}
                         </div>
                       ) : (
-                        <div className="py-8 text-center text-text-secondary border-2 border-dashed border-border-subtle rounded-xl">
-                          <span className="material-symbols-outlined text-[36px] text-outline mb-1">receipt_long</span>
+                        <div className="py-6 text-center text-text-secondary border-2 border-dashed border-border-subtle rounded-xl">
+                          <span className="material-symbols-outlined text-[32px] text-outline mb-1">receipt_long</span>
                           <p className="text-xs font-medium">Belum ada riwayat penukaran e-wallet.</p>
                         </div>
                       )}
