@@ -126,7 +126,7 @@ function ReviewSection({ product, user, updateUser }) {
   const totalSold = 120;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 mt-6">
+    <div id="section-ulasan" className="bg-white border border-gray-200 rounded-xl p-6 mt-6 scroll-mt-24">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <span className="material-symbols-outlined text-primary text-[22px]">
@@ -1070,23 +1070,34 @@ export default function ProductDetailPage() {
 
               {/* Rating row */}
               <div className="flex items-center flex-wrap gap-3 text-sm">
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <span
-                      key={s}
-                      className="material-symbols-outlined text-[16px]"
-                      style={{
-                        color: "#f59e0b",
-                        fontVariationSettings: "'FILL' 1",
-                      }}
-                    >
-                      star
-                    </span>
-                  ))}
+                <a
+                  href="#section-ulasan"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('section-ulasan')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="flex items-center gap-1.5 cursor-pointer group hover:opacity-85 transition-opacity"
+                >
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <span
+                        key={s}
+                        className="material-symbols-outlined text-[16px]"
+                        style={{
+                          color: "#f59e0b",
+                          fontVariationSettings: "'FILL' 1",
+                        }}
+                      >
+                        star
+                      </span>
+                    ))}
+                  </div>
                   <span className="font-bold text-gray-800 ml-0.5">4.9</span>
-                </div>
-                <span className="text-gray-400">|</span>
-                <span className="text-gray-500 text-[13px]">33 Penilaian</span>
+                  <span className="text-gray-400 mx-1">|</span>
+                  <span className="text-primary font-semibold text-[13px] underline group-hover:text-primary-hover">
+                    Lihat Ulasan (33 Penilaian)
+                  </span>
+                </a>
                 <span className="text-gray-400">|</span>
                 <span className="text-gray-500 text-[13px]">120+ Terjual</span>
               </div>
