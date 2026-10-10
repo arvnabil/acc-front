@@ -40,10 +40,61 @@ export default function DashboardPage() {
   const [reviewSubTab, setReviewSubTab] = useState('pending'); // 'pending' | 'completed'
 
   // E-Wallet Claim Form State
+  const [showEwalletForm, setShowEwalletForm] = useState(false);
   const [ewalletPlatform, setEwalletPlatform] = useState('GoPay');
   const [ewalletPhone, setEwalletPhone] = useState(user?.phone || '0812-3456-7890');
   const [ewalletAccountName, setEwalletAccountName] = useState(user?.name || 'John Doe');
   const [selectedEwalletPackage, setSelectedEwalletPackage] = useState({ points: 500, rupiah: 50000 });
+
+  // Loyalty Banner State
+  const [showLoyaltyInfo, setShowLoyaltyInfo] = useState(false);
+  const LOYALTY_LEVELS = [
+    { 
+      id: 'silver',   
+      label: 'Silver',   
+      minPoints: 0,     
+      maxPoints: 4999,  
+      color: 'from-slate-600 via-slate-700 to-zinc-800',    
+      badgeBg: 'bg-slate-500', 
+      textColor: 'text-slate-200', 
+      icon: '⭐',  
+      perks: ['Akses produk reguler', '50 Poin per ulasan', 'Voucher member bulanan'] 
+    },
+    { 
+      id: 'gold',     
+      label: 'Gold',     
+      minPoints: 5000,  
+      maxPoints: 19999, 
+      color: 'from-amber-500 via-amber-600 to-yellow-600',   
+      badgeBg: 'bg-amber-500', 
+      textColor: 'text-amber-100', 
+      icon: '🌟', 
+      perks: ['Semua benefit Silver', 'Bonus 10% Poin per order', 'Gratis ongkir 2x/bulan', 'Akses Flash Sale eksklusif'] 
+    },
+    { 
+      id: 'platinum', 
+      label: 'Platinum', 
+      minPoints: 20000, 
+      maxPoints: null,  
+      color: 'from-violet-700 via-purple-800 to-indigo-900',  
+      badgeBg: 'bg-violet-700', 
+      textColor: 'text-violet-200', 
+      icon: '💎', 
+      perks: ['Semua benefit Gold', 'Bonus 25% Poin per order', 'Dedicated Account Manager', 'Invoice & Faktur Pajak PKP', 'Early Access produk baru'] 
+    },
+  ];
+  const currentPoints = user?.points || 0;
+  const tierLower = (user?.memberTier || '').toLowerCase();
+  const currentLevelIndex = tierLower.includes('platinum') || currentPoints >= 20000 
+    ? 2 
+    : tierLower.includes('gold') || currentPoints >= 5000 
+      ? 1 
+      : 0;
+  const [activeLoyaltyIdx, setActiveLoyaltyIdx] = useState(currentLevelIndex);
+
+  useEffect(() => {
+    setActiveLoyaltyIdx(currentLevelIndex);
+  }, [currentLevelIndex]);
 
   // Address management state
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -883,214 +934,409 @@ export default function DashboardPage() {
           {/* TAB 3: TUKAR POIN & REWARD (FEATURE BARU) */}
           {activeTab === 'points' && (
             <div className="space-y-6">
-              {/* Point Status Header */}
-              <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white rounded-2xl p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <span className="text-amber-100 text-xs uppercase tracking-wider font-semibold">Accommerce Loyalty Points</span>
-                  <h3 className="text-3xl font-extrabold mt-1">{(user.points || 0).toLocaleString('id-ID')} Poin</h3>
-                  <p className="text-amber-100 text-xs mt-1">1 Poin = Rp 100 nilai konversi e-wallet atau voucher promo</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3 text-xs text-amber-50 max-w-xs">
-                  Dapatkan 100 Poin untuk setiap transaksi kelipatan Rp 1.000.000 di Accommerce.id.
-                </div>
-              </div>
+              {/* Point Status Banner — Tier-Colored with Level Carousel */}
+              {(() => {
+                const activeLevel = LOYALTY_LEVELS[activeLoyaltyIdx];
+                const isCurrentLevel = activeLoyaltyIdx === currentLevelIndex;
+                const progressPct = activeLevel.maxPoints
+                  ? Math.min(100, Math.round(((currentPoints - activeLevel.minPoints) / (activeLevel.maxPoints - activeLevel.minPoints + 1)) * 100))
+                  : 100;
+                return (
+                  <div className={`bg-gradient-to-br ${activeLevel.color} text-white rounded-2xl shadow-md overflow-hidden transition-all duration-300`}>
+                    {/* Level Carousel Header & Tabs with Slide Controls */}
+                    <div className="flex items-center border-b border-white/20 bg-black/10">
+                      {/* Prev Button */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveLoyaltyIdx(prev => Math.max(0, prev - 1))}
+                        disabled={activeLoyaltyIdx === 0}
+                        className="px-3 py-2.5 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                        title="Level Sebelumnya"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                      </button>
 
-              {/* Sub-section 1: Order Klaim Saldo E-Wallet & Riwayat Klaim */}
-              <div className="bg-white rounded-xl border border-border-subtle p-6 shadow-sm space-y-6">
-                <div>
-                  <h4 className="text-base font-bold text-text-primary flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
-                    Klaim Saldo E-Wallet dari Poin
-                  </h4>
-                  <p className="text-xs text-text-secondary mt-0.5">
-                    Tukarkan poin loyalty Anda menjadi saldo e-wallet asli. Masukkan nomor HP dan platform e-wallet tujuan penarikan saldo.
-                  </p>
-                </div>
+                      {/* Level Tabs */}
+                      <div className="flex-1 flex overflow-x-auto scrollbar-none">
+                        {LOYALTY_LEVELS.map((lv, idx) => {
+                          const isCurrent = idx === currentLevelIndex;
+                          const isAchieved = idx < currentLevelIndex;
+                          const isLocked = idx > currentLevelIndex;
+                          const isSelected = activeLoyaltyIdx === idx;
+                          return (
+                            <button
+                              key={lv.id}
+                              type="button"
+                              onClick={() => setActiveLoyaltyIdx(idx)}
+                              className={`flex-1 py-2.5 px-2 text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                                isSelected
+                                  ? 'bg-white/25 text-white shadow-inner border-b-2 border-white'
+                                  : 'text-white/60 hover:text-white/90 hover:bg-white/10'
+                              }`}
+                            >
+                              <span>{lv.icon}</span>
+                              <span>{lv.label}</span>
+                              {isCurrent && (
+                                <span className="text-[9px] bg-emerald-500/80 text-white font-semibold px-1.5 py-0.5 rounded-full ml-0.5">
+                                  Level Anda
+                                </span>
+                              )}
+                              {isAchieved && (
+                                <span className="text-[9px] bg-white/20 text-white/80 px-1 py-0.5 rounded ml-0.5 hidden sm:inline">
+                                  ✓ Tercapai
+                                </span>
+                              )}
+                              {isLocked && (
+                                <span className="text-[9px] bg-black/20 text-white/60 px-1 py-0.5 rounded ml-0.5 hidden sm:inline">
+                                  🔒 Terkunci
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
 
-                {/* Form Order Klaim */}
-                <form onSubmit={handleClaimEwalletSubmit} className="p-5 bg-surface/60 rounded-xl border border-border-subtle space-y-4">
-                  {/* Step 1: Pilih Platform */}
-                  <div>
-                    <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-2">
-                      1. Pilih Platform E-Wallet Tujuan
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                      {[
-                        { name: 'GoPay', color: 'bg-emerald-600 text-white', icon: 'payments' },
-                        { name: 'OVO', color: 'bg-purple-700 text-white', icon: 'credit_card' },
-                        { name: 'DANA', color: 'bg-sky-500 text-white', icon: 'account_balance_wallet' },
-                        { name: 'ShopeePay', color: 'bg-orange-500 text-white', icon: 'shopping_bag' },
-                        { name: 'LinkAja', color: 'bg-red-600 text-white', icon: 'send_to_mobile' },
-                      ].map((pl) => (
-                        <button
-                          key={pl.name}
-                          type="button"
-                          onClick={() => setEwalletPlatform(pl.name)}
-                          className={`p-3 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer border ${
-                            ewalletPlatform === pl.name
-                              ? `${pl.color} ring-2 ring-primary ring-offset-1 shadow-sm`
-                              : 'bg-white border-border-subtle text-text-primary hover:border-primary/50'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[20px]">{pl.icon}</span>
-                          <span>{pl.name}</span>
-                        </button>
-                      ))}
+                      {/* Next Button */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveLoyaltyIdx(prev => Math.min(LOYALTY_LEVELS.length - 1, prev + 1))}
+                        disabled={activeLoyaltyIdx === LOYALTY_LEVELS.length - 1}
+                        className="px-3 py-2.5 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                        title="Level Berikutnya"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                      </button>
                     </div>
-                  </div>
 
-                  {/* Step 2: Nomor HP & Nama Pemilik */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div>
-                      <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
-                        2. Nomor HP Akun {ewalletPlatform} *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={ewalletPhone}
-                        onChange={(e) => setEwalletPhone(e.target.value)}
-                        placeholder="Cth: 081234567890"
-                        className="w-full bg-white border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
-                        3. Nama Pemilik Akun *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={ewalletAccountName}
-                        onChange={(e) => setEwalletAccountName(e.target.value)}
-                        placeholder="Cth: Budi Santoso"
-                        className="w-full bg-white border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Step 3: Pilih Paket Nominal */}
-                  <div>
-                    <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-2">
-                      4. Pilih Nominal Penukaran Poin
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                      {[
-                        { points: 500, rupiah: 50000, label: '500 Poin' },
-                        { points: 1000, rupiah: 100000, label: '1.000 Poin' },
-                        { points: 2500, rupiah: 250000, label: '2.500 Poin' },
-                        { points: 5000, rupiah: 500000, label: '5.000 Poin' },
-                      ].map((pkg) => {
-                        const isSelected = selectedEwalletPackage.points === pkg.points;
-                        const isAffordable = (user.points || 0) >= pkg.points;
-                        return (
-                          <div
-                            key={pkg.points}
-                            onClick={() => setSelectedEwalletPackage(pkg)}
-                            className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                              isSelected
-                                ? 'bg-blue-50/60 border-primary ring-1 ring-primary shadow-xs'
-                                : 'bg-white border-border-subtle hover:border-gray-300'
-                            }`}
+                    {/* Banner Body */}
+                    <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className={`text-[11px] uppercase tracking-wider font-semibold ${activeLevel.textColor}`}>
+                            Accommerce Loyalty Points — {activeLevel.label}
+                          </span>
+                          {/* Info Button (? / !) */}
+                          <button
+                            type="button"
+                            onClick={() => setShowLoyaltyInfo(v => !v)}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/35 text-white text-[11px] font-semibold transition-colors cursor-pointer shrink-0 border border-white/30 shadow-xs"
+                            title="Klik untuk melihat penjelasan program loyalitas"
                           >
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
-                                {pkg.label}
-                              </span>
-                              <input
-                                type="radio"
-                                name="ewallet_package"
-                                checked={isSelected}
-                                onChange={() => setSelectedEwalletPackage(pkg)}
-                                className="accent-primary cursor-pointer"
+                            <span className="material-symbols-outlined text-[14px]">help</span>
+                            <span>Info Program</span>
+                          </button>
+                        </div>
+
+                        {isCurrentLevel ? (
+                          <>
+                            <h3 className="text-3xl font-extrabold mt-1">{currentPoints.toLocaleString('id-ID')} Poin</h3>
+                            <p className={`text-xs mt-1 ${activeLevel.textColor}`}>1 Poin = Rp 100 nilai konversi e-wallet atau voucher promo</p>
+                          </>
+                        ) : (
+                          <>
+                            <h3 className="text-2xl font-extrabold mt-1 flex items-center gap-2">
+                              <span>{activeLevel.label} Tier</span>
+                              {activeLoyaltyIdx < currentLevelIndex ? (
+                                <span className="text-xs bg-emerald-500/80 px-2 py-0.5 rounded-full font-medium">✓ Sudah Tercapai</span>
+                              ) : (
+                                <span className="text-xs bg-black/30 px-2 py-0.5 rounded-full font-medium">🔒 Belum Tercapai</span>
+                              )}
+                            </h3>
+                            <p className={`text-xs mt-1 ${activeLevel.textColor}`}>
+                              {activeLoyaltyIdx > currentLevelIndex
+                                ? `Kumpulkan ${(activeLevel.minPoints - currentPoints).toLocaleString('id-ID')} Poin lagi untuk membuka keuntungan level ini`
+                                : `Tingkat awal membership dengan berbagai keuntungan dasar`}
+                            </p>
+                          </>
+                        )}
+
+                        {/* Progress bar (only for current level) */}
+                        {isCurrentLevel && activeLevel.maxPoints && (
+                          <div className="mt-3 max-w-xs">
+                            <div className="flex justify-between text-[10px] text-white/70 mb-1">
+                              <span>{activeLevel.minPoints.toLocaleString('id-ID')} Poin</span>
+                              <span>{activeLevel.maxPoints.toLocaleString('id-ID')} Poin</span>
+                            </div>
+                            <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-white/80 rounded-full transition-all"
+                                style={{ width: `${progressPct}%` }}
                               />
                             </div>
-                            <div className="text-lg font-extrabold text-text-primary">
-                              Rp {pkg.rupiah.toLocaleString('id-ID')}
-                            </div>
-                            <p className="text-[11px] text-text-secondary mt-0.5">
-                              {isAffordable ? 'Poin mencukupi' : 'Poin belum cukup'}
-                            </p>
+                            <p className="text-[10px] text-white/60 mt-1">{progressPct}% menuju level berikutnya</p>
                           </div>
-                        );
-                      })}
+                        )}
+                        {isCurrentLevel && !activeLevel.maxPoints && (
+                          <div className="mt-2">
+                            <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-semibold">🏆 Level Tertinggi Tercapai</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right: Perks list */}
+                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3.5 text-xs text-white/90 max-w-xs w-full sm:w-auto shrink-0">
+                        <p className="font-bold mb-1.5 text-white text-[11px] uppercase tracking-wide flex items-center justify-between">
+                          <span>Keuntungan {activeLevel.label}</span>
+                          <span className="text-[10px] font-normal text-white/70">
+                            {activeLevel.maxPoints ? `≥ ${activeLevel.minPoints.toLocaleString('id-ID')} pts` : `≥ 20.000 pts`}
+                          </span>
+                        </p>
+                        <ul className="space-y-1">
+                          {activeLevel.perks.map((p, i) => (
+                            <li key={i} className="flex items-start gap-1.5">
+                              <span className="material-symbols-outlined text-[13px] text-white/80 mt-0.5 shrink-0">check_circle</span>
+                              <span>{p}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Loyalty Info Popup */}
+                    {showLoyaltyInfo && (
+                      <div className="mx-5 mb-5 p-4 bg-black/30 backdrop-blur-sm rounded-xl text-xs text-white/90 border border-white/20 space-y-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-white text-sm flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[16px]">loyalty</span>
+                            Program Loyalitas Accommerce
+                          </span>
+                          <button onClick={() => setShowLoyaltyInfo(false)} className="text-white/60 hover:text-white cursor-pointer">
+                            <span className="material-symbols-outlined text-[18px]">close</span>
+                          </button>
+                        </div>
+                        <p>Kumpulkan poin dari setiap transaksi dan dapatkan keuntungan eksklusif sesuai level membership Anda.</p>
+                        <div className="grid grid-cols-3 gap-2 pt-1">
+                          {LOYALTY_LEVELS.map(lv => (
+                            <div key={lv.id} className="bg-white/10 rounded-lg p-2 text-center">
+                              <div className="text-lg mb-0.5">{lv.icon}</div>
+                              <div className="font-bold text-white text-[11px]">{lv.label}</div>
+                              <div className="text-white/60 text-[10px] mt-0.5">
+                                {lv.maxPoints ? `${lv.minPoints.toLocaleString('id-ID')}–${lv.maxPoints.toLocaleString('id-ID')} Poin` : `≥ ${lv.minPoints.toLocaleString('id-ID')} Poin`}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-white/60 text-[10px] pt-1">💡 100 Poin = Rp 10.000 nilai klaim. Poin tidak kadaluarsa selama akun aktif.</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Sub-section 1: Klaim Saldo E-Wallet — Collapsible Accordion */}
+              <div className="bg-white rounded-xl border border-border-subtle shadow-sm overflow-hidden">
+                {/* Accordion Header / Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowEwalletForm(v => !v)}
+                  className="w-full flex items-center justify-between gap-3 px-6 py-4 hover:bg-surface/50 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-primary text-[20px]">account_balance_wallet</span>
+                    </div>
+                    <div className="text-left">
+                      <h4 className="text-sm font-bold text-text-primary">Klaim Saldo E-Wallet dari Poin</h4>
+                      <p className="text-[11px] text-text-secondary mt-0.5">Tukar poin loyalty Anda menjadi saldo GoPay, OVO, DANA, ShopeePay, LinkAja</p>
                     </div>
                   </div>
-
-                  {/* Submit Button */}
-                  <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="text-xs text-text-secondary">
-                      Poin saat ini: <strong className="text-primary font-bold">{(user.points || 0).toLocaleString('id-ID')} Pts</strong> • Biaya penukaran: <strong className="text-amber-700 font-bold">{selectedEwalletPackage.points} Pts</strong>
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={(user.points || 0) < selectedEwalletPackage.points}
-                      className="px-6 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5 self-start sm:self-auto"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">verified</span>
-                      Klaim Saldo {ewalletPlatform} Sekarang
-                    </button>
-                  </div>
-                </form>
-
-                {/* Status & Riwayat Klaim Saldo E-Wallet */}
-                <div className="pt-2 border-t border-border-subtle">
-                  <div className="flex items-center justify-between mb-4">
-                    <h5 className="font-bold text-sm text-text-primary flex items-center gap-2">
-                      <span className="material-symbols-outlined text-emerald-600 text-[20px]">history</span>
-                      Status & Riwayat Klaim Saldo E-Wallet
-                    </h5>
-                    <span className="text-xs text-text-secondary">
-                      {(user.ewalletClaims || []).length} transaksi
+                  <div className={`flex items-center gap-2 shrink-0 transition-all`}>
+                    <span className="text-[11px] font-bold text-primary bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg">
+                      {(user.points || 0).toLocaleString('id-ID')} Poin tersedia
+                    </span>
+                    <span className={`material-symbols-outlined text-text-secondary text-[22px] transition-transform duration-200 ${showEwalletForm ? 'rotate-180' : 'rotate-0'}`}>
+                      expand_more
                     </span>
                   </div>
+                </button>
 
-                  {(user.ewalletClaims || []).length > 0 ? (
-                    <div className="space-y-3">
-                      {(user.ewalletClaims || []).map((cl) => (
-                        <div
-                          key={cl.id}
-                          className="p-4 rounded-xl border border-border-subtle bg-white hover:border-gray-300 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-                        >
-                          <div className="space-y-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-bold text-xs font-mono text-primary bg-blue-50 px-2 py-0.5 rounded">
-                                {cl.id}
-                              </span>
-                              <span className="font-bold text-sm text-text-primary">
-                                {cl.platform} • {cl.accountName}
-                              </span>
-                              <span className="text-xs font-mono text-text-secondary">
-                                ({cl.phone})
-                              </span>
-                              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[13px]">check_circle</span>
-                                {cl.status || 'Berhasil Ditransfer'}
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-text-secondary">
-                              Waktu: {cl.date} • No. Ref: <span className="font-mono">{cl.refNumber || 'TRX-8927163'}</span>
-                            </p>
-                          </div>
-
-                          <div className="sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 flex sm:flex-col justify-between items-baseline sm:items-end">
-                            <div className="text-base font-extrabold text-emerald-600">
-                              +Rp {(cl.amount || 0).toLocaleString('id-ID')}
-                            </div>
-                            <div className="text-[11px] font-bold text-amber-700">
-                              -{cl.points} Poin
-                            </div>
-                          </div>
+                {/* Collapsible Form Body */}
+                {showEwalletForm && (
+                  <div className="border-t border-border-subtle px-6 pb-6 space-y-6 pt-5">
+                    <form onSubmit={handleClaimEwalletSubmit} className="p-5 bg-surface/60 rounded-xl border border-border-subtle space-y-4">
+                      {/* Step 1: Pilih Platform */}
+                      <div>
+                        <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-2">
+                          1. Pilih Platform E-Wallet Tujuan
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                          {[
+                            { name: 'GoPay', color: 'bg-emerald-600 text-white', icon: 'payments' },
+                            { name: 'OVO', color: 'bg-purple-700 text-white', icon: 'credit_card' },
+                            { name: 'DANA', color: 'bg-sky-500 text-white', icon: 'account_balance_wallet' },
+                            { name: 'ShopeePay', color: 'bg-orange-500 text-white', icon: 'shopping_bag' },
+                            { name: 'LinkAja', color: 'bg-red-600 text-white', icon: 'send_to_mobile' },
+                          ].map((pl) => (
+                            <button
+                              key={pl.name}
+                              type="button"
+                              onClick={() => setEwalletPlatform(pl.name)}
+                              className={`p-3 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                                ewalletPlatform === pl.name
+                                  ? `${pl.color} ring-2 ring-primary ring-offset-1 shadow-sm`
+                                  : 'bg-white border-border-subtle text-text-primary hover:border-primary/50'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[20px]">{pl.icon}</span>
+                              <span>{pl.name}</span>
+                            </button>
+                          ))}
                         </div>
-                      ))}
+                      </div>
+
+                      {/* Step 2: Nomor HP & Nama Pemilik */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                            2. Nomor HP Akun {ewalletPlatform} *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={ewalletPhone}
+                            onChange={(e) => setEwalletPhone(e.target.value)}
+                            placeholder="Cth: 081234567890"
+                            className="w-full bg-white border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                            3. Nama Pemilik Akun *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={ewalletAccountName}
+                            onChange={(e) => setEwalletAccountName(e.target.value)}
+                            placeholder="Cth: Budi Santoso"
+                            className="w-full bg-white border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-text-primary focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Step 3: Pilih Paket Nominal */}
+                      <div>
+                        <label className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-2">
+                          4. Pilih Nominal Penukaran Poin
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                          {[
+                            { points: 500, rupiah: 50000, label: '500 Poin' },
+                            { points: 1000, rupiah: 100000, label: '1.000 Poin' },
+                            { points: 2500, rupiah: 250000, label: '2.500 Poin' },
+                            { points: 5000, rupiah: 500000, label: '5.000 Poin' },
+                          ].map((pkg) => {
+                            const isSelected = selectedEwalletPackage.points === pkg.points;
+                            const isAffordable = (user.points || 0) >= pkg.points;
+                            return (
+                              <div
+                                key={pkg.points}
+                                onClick={() => setSelectedEwalletPackage(pkg)}
+                                className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                                  isSelected
+                                    ? 'bg-blue-50/60 border-primary ring-1 ring-primary shadow-xs'
+                                    : 'bg-white border-border-subtle hover:border-gray-300'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                                    {pkg.label}
+                                  </span>
+                                  <input
+                                    type="radio"
+                                    name="ewallet_package"
+                                    checked={isSelected}
+                                    onChange={() => setSelectedEwalletPackage(pkg)}
+                                    className="accent-primary cursor-pointer"
+                                  />
+                                </div>
+                                <div className="text-lg font-extrabold text-text-primary">
+                                  Rp {pkg.rupiah.toLocaleString('id-ID')}
+                                </div>
+                                <p className={`text-[11px] mt-0.5 font-medium ${isAffordable ? 'text-emerald-600' : 'text-red-400'}`}>
+                                  {isAffordable ? '✓ Poin mencukupi' : 'Poin belum cukup'}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Submit Button */}
+                      <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="text-xs text-text-secondary">
+                          Poin saat ini: <strong className="text-primary font-bold">{(user.points || 0).toLocaleString('id-ID')} Pts</strong> • Biaya penukaran: <strong className="text-amber-700 font-bold">{selectedEwalletPackage.points} Pts</strong>
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={(user.points || 0) < selectedEwalletPackage.points}
+                          className="px-6 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5 self-start sm:self-auto"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">verified</span>
+                          Klaim Saldo {ewalletPlatform} Sekarang
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Status & Riwayat Klaim Saldo E-Wallet */}
+                    <div className="border-t border-border-subtle pt-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h5 className="font-bold text-sm text-text-primary flex items-center gap-2">
+                          <span className="material-symbols-outlined text-emerald-600 text-[20px]">history</span>
+                          Status & Riwayat Klaim Saldo E-Wallet
+                        </h5>
+                        <span className="text-xs text-text-secondary">
+                          {(user.ewalletClaims || []).length} transaksi
+                        </span>
+                      </div>
+
+                      {(user.ewalletClaims || []).length > 0 ? (
+                        <div className="space-y-3">
+                          {(user.ewalletClaims || []).map((cl) => (
+                            <div
+                              key={cl.id}
+                              className="p-4 rounded-xl border border-border-subtle bg-white hover:border-gray-300 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+                            >
+                              <div className="space-y-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="font-bold text-xs font-mono text-primary bg-blue-50 px-2 py-0.5 rounded">
+                                    {cl.id}
+                                  </span>
+                                  <span className="font-bold text-sm text-text-primary">
+                                    {cl.platform} • {cl.accountName}
+                                  </span>
+                                  <span className="text-xs font-mono text-text-secondary">
+                                    ({cl.phone})
+                                  </span>
+                                  <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                                    {cl.status || 'Berhasil Ditransfer'}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-text-secondary">
+                                  Waktu: {cl.date} • No. Ref: <span className="font-mono">{cl.refNumber || 'TRX-8927163'}</span>
+                                </p>
+                              </div>
+                              <div className="sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 flex sm:flex-col justify-between items-baseline sm:items-end">
+                                <div className="text-base font-extrabold text-emerald-600">
+                                  +Rp {(cl.amount || 0).toLocaleString('id-ID')}
+                                </div>
+                                <div className="text-[11px] font-bold text-amber-700">
+                                  -{cl.points} Poin
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="py-8 text-center text-text-secondary border-2 border-dashed border-border-subtle rounded-xl">
+                          <span className="material-symbols-outlined text-[36px] text-outline mb-1">receipt_long</span>
+                          <p className="text-xs font-medium">Belum ada riwayat penukaran e-wallet.</p>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="py-8 text-center text-text-secondary border-2 border-dashed border-border-subtle rounded-xl">
-                      <span className="material-symbols-outlined text-[36px] text-outline mb-1">receipt_long</span>
-                      <p className="text-xs font-medium">Belum ada riwayat penukaran e-wallet.</p>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Sub-section 2: Tukar Poin ke Voucher Potongan */}
