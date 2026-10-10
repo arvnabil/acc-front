@@ -30,7 +30,7 @@ function CardBadge({ product, isRental, isLicense, isFlashSale }) {
     </span>
   );
   if (isFlashSale || product.is_flash_sale) return (
-    <span className="bg-[#ee4d2d] text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
+    <span className="bg-gradient-to-r from-red-600 to-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm animate-pulse">
       <span className="material-symbols-outlined text-[12px]">local_fire_department</span>
       Flash Sale
     </span>

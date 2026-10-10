@@ -921,25 +921,25 @@ export default function ProductDetailPage() {
                 <span className="text-gray-500 text-[13px]">120+ Terjual</span>
               </div>
 
-              {/* Shopee-style Flash Sale Box with Countdown & Price */}
+              {/* Flash Sale Box with Accommerce Red Gradient & Countdown */}
               {isFlashSale ? (
-                <div className="rounded-xl overflow-hidden shadow-sm border border-[#ee4d2d]/30">
-                  {/* Shopee Red/Orange Header */}
-                  <div className="bg-gradient-to-r from-[#ee4d2d] via-[#f05d40] to-[#ff7337] px-4 py-2.5 text-white flex items-center justify-between flex-wrap gap-2">
+                <div className="rounded-xl overflow-hidden shadow-sm border border-red-200">
+                  {/* Accommerce Red Gradient Header */}
+                  <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-500 px-4 py-2.5 text-white flex items-center justify-between flex-wrap gap-2 shadow-sm">
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[20px] text-yellow-300 animate-pulse">local_fire_department</span>
-                      <span className="font-black text-[15px] sm:text-[16px] tracking-wider uppercase italic">FLASH SALE</span>
+                      <span className="font-extrabold text-[15px] sm:text-[16px] tracking-wider uppercase">FLASH SALE</span>
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                      <span className="text-[11px] font-bold text-white/95 uppercase tracking-wider flex items-center gap-1">
+                      <span className="text-[11px] font-semibold text-white/90 uppercase tracking-wider flex items-center gap-1">
                         <span className="material-symbols-outlined text-[15px]">schedule</span>
-                        BERAKHIR DALAM
+                        Berakhir dalam:
                       </span>
                       <div className="flex items-center gap-1">
                         {[countdown.h, countdown.m, countdown.s].map((v, i) => (
                           <span
                             key={i}
-                            className="bg-black text-white text-[12px] font-mono font-bold px-1.5 py-0.5 rounded min-w-[24px] text-center shadow-inner"
+                            className="bg-black/40 backdrop-blur-sm border border-white/20 text-white text-[12px] font-mono font-bold px-1.5 py-0.5 rounded min-w-[24px] text-center shadow-inner"
                           >
                             {String(v).padStart(2, '0')}
                           </span>
@@ -949,9 +949,9 @@ export default function ProductDetailPage() {
                   </div>
 
                   {/* Price Body */}
-                  <div className="bg-[#fff8f5] p-4">
+                  <div className="bg-[#fff9f9] p-4">
                     <div className="flex items-baseline gap-3 flex-wrap">
-                      <div className="text-[30px] sm:text-[34px] font-black text-[#ee4d2d] leading-none">
+                      <div className="text-[30px] sm:text-[34px] font-black text-red-600 leading-none">
                         {formatPrice(displayPrice)}
                       </div>
                       {hasDiscount && (
@@ -960,7 +960,7 @@ export default function ProductDetailPage() {
                         </span>
                       )}
                       {discountPct > 0 && (
-                        <span className="bg-[#ee4d2d] text-white text-[12px] font-black px-1.5 py-0.5 rounded shadow-sm">
+                        <span className="bg-red-500 text-white text-[12px] font-bold px-1.5 py-0.5 rounded shadow-sm">
                           -{discountPct}%
                         </span>
                       )}
