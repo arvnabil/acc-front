@@ -125,6 +125,12 @@ export default function CartPage() {
                     >
                       {item.name}
                     </Link>
+                    {item.rentalInfo && (
+                      <div className="mt-1 inline-flex items-center gap-1.5 bg-orange-50 border border-orange-200 text-orange-800 text-[11px] font-semibold px-2 py-0.5 rounded-md">
+                        <span className="material-symbols-outlined text-[13px] text-orange-600">event_available</span>
+                        <span>{item.rentalInfo.days} Hari ({item.rentalInfo.startTime} - {item.rentalInfo.endTime})</span>
+                      </div>
+                    )}
                     <div className="font-price text-[15px] text-primary font-bold mt-1">
                       {formatPrice(item.price)}
                     </div>

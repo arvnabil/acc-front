@@ -232,9 +232,9 @@ function FlashSaleCard({ product }) {
       to={`/produk/${product.slug}`}
       className="flex-shrink-0 w-[170px] sm:w-[190px] bg-card-bg border border-border-subtle rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group hover:border-red-400/50"
     >
-      <div className="relative w-full h-[130px] bg-surface overflow-hidden">
+      <div className="relative w-full bg-white overflow-hidden" style={{ aspectRatio: '1/1' }}>
         {imgUrl ? (
-          <img src={imgUrl} alt={product.name} className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300" />
+          <img src={imgUrl} alt={product.name} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <span className="material-symbols-outlined text-[40px] text-border-subtle">image</span>

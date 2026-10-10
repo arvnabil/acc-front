@@ -67,7 +67,7 @@ export function CartProvider({ children }) {
   }, [appliedPromo]);
 
   function addItem(product, quantity = 1, variant = null) {
-    const key = variant ? `${product.id}-v${variant.id}` : `${product.id}`;
+    const key = product.cartKey || (variant ? `${product.id}-v${variant.id}` : `${product.id}`);
     setItems(prev => {
       const existing = prev.find(i => i.key === key);
       if (existing) {
@@ -83,6 +83,7 @@ export function CartProvider({ children }) {
         image: (variant?.images?.[0] || product.images?.[0]) || '',
         quantity,
         stock: variant?.stock ?? product.stock,
+        rentalInfo: product.rentalInfo || null,
       }];
     });
   }

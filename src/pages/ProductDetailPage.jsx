@@ -416,6 +416,62 @@ function VariantSelector({ variants, selectedId, onSelect }) {
   );
 }
 
+// Helper date utilities without timezone shift issues
+function getISODate(d = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function addDaysToDate(baseDateStr, days) {
+  const [y, m, d] = (baseDateStr || getISODate()).split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + days);
+  return getISODate(date);
+}
+
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString('id-ID', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+}
+
+function getRentalDays(startDateStr, endDateStr) {
+  if (!startDateStr || !endDateStr) return 1;
+  const [y1, m1, d1] = startDateStr.split('-').map(Number);
+  const [y2, m2, d2] = endDateStr.split('-').map(Number);
+  const date1 = new Date(y1, m1 - 1, d1);
+  const date2 = new Date(y2, m2 - 1, d2);
+  const diffTime = date2.getTime() - date1.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays <= 0) return 1;
+  return diffDays;
+}
+
+const RENTAL_DURATION_PRESETS = [
+  { days: 1, label: '1 Hari' },
+  { days: 2, label: '2 Hari' },
+  { days: 3, label: '3 Hari', isPopular: true },
+  { days: 5, label: '5 Hari' },
+  { days: 7, label: '1 Minggu' },
+  { days: 14, label: '2 Minggu' },
+  { days: 30, label: '1 Bulan' },
+];
+
+const RENTAL_QUICK_STARTS = [
+  { label: 'Hari Ini', offsetDays: 0 },
+  { label: 'Besok', offsetDays: 1 },
+  { label: 'Lusa', offsetDays: 2 },
+];
+
+const RENTAL_QUICK_TIMES = ['08:00', '09:00', '10:00', '13:00', '14:00', '16:00', '18:00'];
+const LICENSE_SEAT_PRESETS = [1, 5, 10, 25, 50, 100];
+
 // ─── Main Page ─────────────────────────────────────────────────────────────
 export default function ProductDetailPage() {
   const { slug } = useParams();
@@ -435,16 +491,23 @@ export default function ProductDetailPage() {
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
 
+  const todayStr = getISODate();
+  const tomorrowStr = addDaysToDate(todayStr, 1);
+
   // Rental (Sewa) state
-  const [rentalStartDate, setRentalStartDate] = useState('');
-  const [rentalEndDate, setRentalEndDate] = useState('');
+  const [rentalStartDate, setRentalStartDate] = useState(todayStr);
+  const [rentalEndDate, setRentalEndDate] = useState(tomorrowStr);
+  const [rentalStartTime, setRentalStartTime] = useState('09:00');
+  const [rentalEndTime, setRentalEndTime] = useState('17:00');
+  const [rentalDurationPreset, setRentalDurationPreset] = useState(1);
 
   // License (Cloud/Software) state
   const LICENSE_DURATIONS = [
-    { id: '1y', label: '1 Tahun', multiplier: 1 },
-    { id: '2y', label: '2 Tahun', multiplier: 1.8 },
-    { id: '3y', label: '3 Tahun', multiplier: 2.5 },
-    { id: 'lifetime', label: 'Lifetime', multiplier: 4 },
+    { id: '1m', label: '1 Bulan', multiplier: 0.1, badge: 'Fleksibel' },
+    { id: '1y', label: '1 Tahun', multiplier: 1, badge: 'Populer', isPopular: true },
+    { id: '2y', label: '2 Tahun', multiplier: 1.8, badge: 'Hemat 10%' },
+    { id: '3y', label: '3 Tahun', multiplier: 2.5, badge: 'Hemat 17%' },
+    { id: 'lifetime', label: 'Lifetime', multiplier: 4, badge: 'Permanen' },
   ];
   const [licenseDuration, setLicenseDuration] = useState('1y');
   const [licenseSeats, setLicenseSeats] = useState(1);
@@ -528,18 +591,13 @@ export default function ProductDetailPage() {
       );
 
   // Rental price calculation
-  const rentalDays = (() => {
-    if (!rentalStartDate || !rentalEndDate) return 0;
-    const d1 = new Date(rentalStartDate);
-    const d2 = new Date(rentalEndDate);
-    const diff = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
-    return Math.max(0, diff);
-  })();
+  const rentalDays = getRentalDays(rentalStartDate, rentalEndDate);
   const rentalTotal = rentalDays > 0 ? displayPrice * rentalDays : displayPrice;
 
   // License price calculation
   const selectedLicenseDuration = LICENSE_DURATIONS.find(d => d.id === licenseDuration);
-  const licenseTotal = Math.round(displayPrice * (selectedLicenseDuration?.multiplier || 1) * licenseSeats);
+  const licensePricePerSeat = Math.round(displayPrice * (selectedLicenseDuration?.multiplier || 1));
+  const licenseTotal = licensePricePerSeat * licenseSeats;
 
   function handleAddToCart() {
     if (isOutOfStock) return;
@@ -549,9 +607,40 @@ export default function ProductDetailPage() {
         showToast({ type: 'error', title: 'Pilih Tanggal Sewa', message: 'Pilih tanggal mulai dan selesai sewa terlebih dahulu.' });
         return;
       }
-      addItem({ ...product, name: `${product.name} (Sewa ${rentalDays} hari)`, regular_price: rentalTotal, sale_price: null }, 1, selectedVariant);
+      addItem({
+        ...product,
+        cartKey: `${product.id}-rental-${rentalStartDate}-${rentalEndDate}-${rentalStartTime}-${rentalEndTime}`,
+        name: `${product.name} (Sewa ${rentalDays} Hari: ${rentalStartDate} s/d ${rentalEndDate})`,
+        regular_price: rentalTotal,
+        sale_price: null,
+        rentalInfo: {
+          isRental: true,
+          days: rentalDays,
+          startDate: rentalStartDate,
+          endDate: rentalEndDate,
+          startTime: rentalStartTime,
+          endTime: rentalEndTime,
+          formattedStart: `${formatDateDisplay(rentalStartDate)} ${rentalStartTime}`,
+          formattedEnd: `${formatDateDisplay(rentalEndDate)} ${rentalEndTime}`,
+          pricePerDay: displayPrice,
+          rentalTotal,
+        }
+      }, 1, selectedVariant);
     } else if (isLicense) {
-      addItem({ ...product, name: `${product.name} - ${selectedLicenseDuration?.label} x${licenseSeats} Seat`, regular_price: licenseTotal, sale_price: null }, 1, selectedVariant);
+      addItem({
+        ...product,
+        cartKey: `${product.id}-license-${licenseDuration}-${licenseSeats}`,
+        name: `${product.name} - Lisensi ${selectedLicenseDuration?.label} (${licenseSeats} Seat)`,
+        regular_price: licenseTotal,
+        sale_price: null,
+        licenseInfo: {
+          isLicense: true,
+          duration: selectedLicenseDuration?.label,
+          seats: licenseSeats,
+          pricePerSeat: licensePricePerSeat,
+          licenseTotal,
+        }
+      }, 1, selectedVariant);
     } else {
       addItem(product, quantity, selectedVariant);
     }
@@ -560,7 +649,7 @@ export default function ProductDetailPage() {
     setTimeout(() => setAdded(false), 2000);
     showToast({
       type: 'cart',
-      title: isRental ? `Booking ${rentalDays} Hari Ditambahkan!` : isLicense ? 'Lisensi Ditambahkan!' : 'Berhasil Masuk Keranjang',
+      title: isRental ? `Booking ${rentalDays} Hari Ditambahkan!` : isLicense ? `Lisensi ${licenseSeats} Seat Ditambahkan!` : 'Berhasil Masuk Keranjang',
       message: product.name,
       link: '/keranjang',
       linkText: 'Lihat Keranjang',
@@ -574,9 +663,40 @@ export default function ProductDetailPage() {
         showToast({ type: 'error', title: 'Pilih Tanggal Sewa', message: 'Pilih tanggal mulai dan selesai sewa terlebih dahulu.' });
         return;
       }
-      addItem({ ...product, name: `${product.name} (Sewa ${rentalDays} hari)`, regular_price: rentalTotal, sale_price: null }, 1, selectedVariant);
+      addItem({
+        ...product,
+        cartKey: `${product.id}-rental-${rentalStartDate}-${rentalEndDate}-${rentalStartTime}-${rentalEndTime}`,
+        name: `${product.name} (Sewa ${rentalDays} Hari: ${rentalStartDate} s/d ${rentalEndDate})`,
+        regular_price: rentalTotal,
+        sale_price: null,
+        rentalInfo: {
+          isRental: true,
+          days: rentalDays,
+          startDate: rentalStartDate,
+          endDate: rentalEndDate,
+          startTime: rentalStartTime,
+          endTime: rentalEndTime,
+          formattedStart: `${formatDateDisplay(rentalStartDate)} ${rentalStartTime}`,
+          formattedEnd: `${formatDateDisplay(rentalEndDate)} ${rentalEndTime}`,
+          pricePerDay: displayPrice,
+          rentalTotal,
+        }
+      }, 1, selectedVariant);
     } else if (isLicense) {
-      addItem({ ...product, name: `${product.name} - ${selectedLicenseDuration?.label} x${licenseSeats} Seat`, regular_price: licenseTotal, sale_price: null }, 1, selectedVariant);
+      addItem({
+        ...product,
+        cartKey: `${product.id}-license-${licenseDuration}-${licenseSeats}`,
+        name: `${product.name} - Lisensi ${selectedLicenseDuration?.label} (${licenseSeats} Seat)`,
+        regular_price: licenseTotal,
+        sale_price: null,
+        licenseInfo: {
+          isLicense: true,
+          duration: selectedLicenseDuration?.label,
+          seats: licenseSeats,
+          pricePerSeat: licensePricePerSeat,
+          licenseTotal,
+        }
+      }, 1, selectedVariant);
     } else {
       addItem(product, quantity, selectedVariant);
     }
@@ -716,9 +836,21 @@ export default function ProductDetailPage() {
             <div className="flex flex-col gap-4">
               {/* Badges row */}
               <div className="flex items-center flex-wrap gap-2">
-                <span className="bg-primary text-white text-[11px] font-bold px-2.5 py-0.5 rounded">
-                  Hot
-                </span>
+                {isRental ? (
+                  <span className="bg-orange-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 shadow-sm">
+                    <span className="material-symbols-outlined text-[13px]">calendar_month</span>
+                    Layanan Sewa
+                  </span>
+                ) : isLicense ? (
+                  <span className="bg-purple-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 shadow-sm">
+                    <span className="material-symbols-outlined text-[13px]">key</span>
+                    Lisensi Digital
+                  </span>
+                ) : (
+                  <span className="bg-primary text-white text-[11px] font-bold px-2.5 py-0.5 rounded">
+                    Hot
+                  </span>
+                )}
                 <span className="bg-emerald-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded">
                   100% Original
                 </span>
@@ -767,13 +899,30 @@ export default function ProductDetailPage() {
                     <span className="text-[13px] text-gray-400 line-through">
                       {formatPrice(regularPrice)}
                     </span>
+                    {isRental && <span className="text-[11px] text-orange-600 font-semibold">/ hari</span>}
+                    {isLicense && !isRental && <span className="text-[11px] text-purple-600 font-semibold">/ seat / thn</span>}
                     <span className="bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded">
                       DISKON {discountPct}%
                     </span>
                   </div>
                 )}
-                <div className="text-[28px] font-extrabold text-primary leading-none">
-                  {formatPrice(displayPrice)}
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <div className={`text-[28px] font-extrabold leading-none ${
+                    isRental ? 'text-orange-600' : isLicense ? 'text-purple-700' : 'text-primary'
+                  }`}>
+                    {formatPrice(displayPrice)}
+                  </div>
+                  {isRental && (
+                    <span className="text-[13px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">
+                      / hari
+                    </span>
+                  )}
+                  {isLicense && !isRental && (
+                    <span className="text-[13px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">
+                      / seat / tahun
+                    </span>
+                  )}
+                  <span className="text-[12px] text-gray-500 font-normal">+ PPN 11%</span>
                 </div>
                 {displayPrice > 0 && (
                   <div className="mt-2.5 flex items-center gap-1.5 text-amber-700 font-semibold text-[12px] bg-amber-100/60 w-max px-2.5 py-1 rounded">
@@ -874,126 +1023,361 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* ── Rental: Date Picker ──────────────────────────────── */}
+              {/* ── Rental: Interactive Date & Time Picker ──────────────── */}
               {isRental && (
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-2.5">
-                    <span className="material-symbols-outlined text-orange-500 text-[18px] flex-shrink-0">event_available</span>
-                    <span className="text-[13px] font-semibold text-orange-700">Produk Sewa — Pilih Periode Booking</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Tanggal Mulai</label>
-                      <input
-                        type="date"
-                        value={rentalStartDate}
-                        min={new Date().toISOString().split('T')[0]}
-                        onChange={e => {
-                          setRentalStartDate(e.target.value);
-                          if (rentalEndDate && e.target.value >= rentalEndDate) setRentalEndDate('');
-                        }}
-                        className="border border-gray-300 rounded-xl px-3 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Tanggal Selesai</label>
-                      <input
-                        type="date"
-                        value={rentalEndDate}
-                        min={rentalStartDate || new Date().toISOString().split('T')[0]}
-                        onChange={e => setRentalEndDate(e.target.value)}
-                        className="border border-gray-300 rounded-xl px-3 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white disabled:bg-gray-50"
-                        disabled={!rentalStartDate}
-                      />
-                    </div>
-                  </div>
-
-                  {rentalDays > 0 && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
-                      <div className="text-[13px] text-blue-700">
-                        <span className="font-bold">{rentalDays} hari</span> × {formatPrice(displayPrice)}/hari
-                      </div>
-                      <div className="font-extrabold text-[18px] text-primary">
-                        {formatPrice(rentalTotal)}
+                <div className="flex flex-col gap-3.5 bg-orange-50/40 border border-orange-200/80 rounded-2xl p-4 sm:p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-sm shadow-orange-500/20">
+                        <span className="material-symbols-outlined text-[18px]">event_available</span>
+                      </span>
+                      <div>
+                        <h4 className="text-[13px] sm:text-[14px] font-bold text-gray-900 leading-tight">
+                          Jadwal Sewa & Booking
+                        </h4>
+                        <p className="text-[11px] text-gray-500">Pilih tanggal dan jam sewa (tinggal klik)</p>
                       </div>
                     </div>
-                  )}
+                    <span className="text-[12px] font-extrabold text-orange-600 bg-orange-100 px-2.5 py-1 rounded-lg">
+                      {rentalDays} Hari Terpilih
+                    </span>
+                  </div>
 
-                  {rentalDays === 0 && !rentalStartDate && (
-                    <p className="text-[12px] text-gray-400 text-center py-2">Pilih tanggal mulai dan selesai untuk melihat total harga</p>
-                  )}
+                  {/* Preset Durasi Sewa */}
+                  <div>
+                    <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide block mb-1.5">
+                      Pilihan Durasi Sewa (Preset Cepat):
+                    </label>
+                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
+                      {RENTAL_DURATION_PRESETS.map((p) => {
+                        const isSelected = rentalDurationPreset === p.days;
+                        return (
+                          <button
+                            key={p.days}
+                            type="button"
+                            onClick={() => {
+                              setRentalDurationPreset(p.days);
+                              const newEnd = addDaysToDate(rentalStartDate, p.days);
+                              setRentalEndDate(newEnd);
+                            }}
+                            className={`py-2 px-1 rounded-xl text-center text-[11px] font-semibold transition-all relative border
+                              ${isSelected
+                                ? 'bg-orange-500 text-white border-orange-500 shadow-sm shadow-orange-500/30 scale-[1.02]'
+                                : 'bg-white hover:bg-orange-50/50 text-gray-700 border-gray-200'
+                              }`}
+                          >
+                            {p.isPopular && !isSelected && (
+                              <span className="absolute -top-1.5 text-[8px] bg-amber-400 text-amber-950 px-1 rounded-full font-bold">
+                                Populer
+                              </span>
+                            )}
+                            <span>{p.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Section 1: Mulai Sewa (Ambil / Kirim) */}
+                  <div className="bg-white p-3 rounded-xl border border-gray-200 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[12px] font-bold text-gray-800 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px] text-emerald-600">calendar_today</span>
+                        1. Mulai Sewa (Ambil / Kirim)
+                      </span>
+                      <span className="text-[11px] text-emerald-700 font-semibold">
+                        {formatDateDisplay(rentalStartDate)}
+                      </span>
+                    </div>
+
+                    {/* Quick chips start date */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-gray-400 font-medium uppercase mr-1">Cepat:</span>
+                      {RENTAL_QUICK_STARTS.map((opt) => {
+                        const targetDate = addDaysToDate(todayStr, opt.offsetDays);
+                        const isSelected = rentalStartDate === targetDate;
+                        return (
+                          <button
+                            key={opt.label}
+                            type="button"
+                            onClick={() => {
+                              setRentalStartDate(targetDate);
+                              const newEnd = addDaysToDate(targetDate, rentalDurationPreset || 1);
+                              setRentalEndDate(newEnd);
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors border
+                              ${isSelected
+                                ? 'bg-emerald-600 text-white border-emerald-600'
+                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-emerald-300'
+                              }`}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div>
+                        <label className="text-[10px] text-gray-500 font-semibold block mb-1">Tanggal Mulai</label>
+                        <input
+                          type="date"
+                          min={todayStr}
+                          value={rentalStartDate}
+                          onChange={(e) => {
+                            setRentalStartDate(e.target.value);
+                            if (e.target.value >= rentalEndDate) {
+                              const newEnd = addDaysToDate(e.target.value, rentalDurationPreset || 1);
+                              setRentalEndDate(newEnd);
+                            } else {
+                              setRentalDurationPreset(getRentalDays(e.target.value, rentalEndDate));
+                            }
+                          }}
+                          className="w-full bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 text-[12px] text-gray-800 focus:outline-none focus:border-orange-500 font-medium"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-500 font-semibold block mb-1">Jam Ambil</label>
+                        <input
+                          type="time"
+                          value={rentalStartTime}
+                          onChange={(e) => setRentalStartTime(e.target.value)}
+                          className="w-full bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 text-[12px] text-gray-800 focus:outline-none focus:border-orange-500 font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Quick chips Jam Mulai */}
+                    <div className="pt-0.5">
+                      <span className="text-[10px] text-gray-400 block mb-1">Pilihan Jam Cepat:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {RENTAL_QUICK_TIMES.map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setRentalStartTime(t)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors
+                              ${rentalStartTime === t
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-gray-50 text-gray-600 border border-gray-200 hover:border-gray-400'
+                              }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Selesai Sewa (Pengembalian) */}
+                  <div className="bg-white p-3 rounded-xl border border-gray-200 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[12px] font-bold text-gray-800 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px] text-rose-500">event_repeat</span>
+                        2. Selesai Sewa (Pengembalian)
+                      </span>
+                      <span className="text-[11px] text-rose-700 font-semibold">
+                        {formatDateDisplay(rentalEndDate)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] text-gray-500 font-semibold block mb-1">Tanggal Selesai</label>
+                        <input
+                          type="date"
+                          min={rentalStartDate}
+                          value={rentalEndDate}
+                          onChange={(e) => {
+                            setRentalEndDate(e.target.value);
+                            setRentalDurationPreset(getRentalDays(rentalStartDate, e.target.value));
+                          }}
+                          className="w-full bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 text-[12px] text-gray-800 focus:outline-none focus:border-orange-500 font-medium"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-500 font-semibold block mb-1">Jam Kembali</label>
+                        <input
+                          type="time"
+                          value={rentalEndTime}
+                          onChange={(e) => setRentalEndTime(e.target.value)}
+                          className="w-full bg-white border border-gray-300 rounded-xl px-2.5 py-1.5 text-[12px] text-gray-800 focus:outline-none focus:border-orange-500 font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Quick chips Jam Selesai */}
+                    <div className="pt-0.5">
+                      <span className="text-[10px] text-gray-400 block mb-1">Pilihan Jam Cepat:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {RENTAL_QUICK_TIMES.map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setRentalEndTime(t)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors
+                              ${rentalEndTime === t
+                                ? 'bg-rose-600 text-white'
+                                : 'bg-gray-50 text-gray-600 border border-gray-200 hover:border-gray-400'
+                              }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ringkasan Biaya Sewa */}
+                  <div className="p-3.5 rounded-xl bg-gradient-to-br from-orange-100/80 to-amber-100/60 border border-orange-200">
+                    <div className="flex items-center justify-between text-[11px] text-orange-950/80 mb-1">
+                      <span>Rincian Biaya Sewa ({rentalDays} Hari):</span>
+                      <span className="font-semibold">{rentalDays} hari × {formatPrice(displayPrice)}</span>
+                    </div>
+                    <div className="flex items-baseline justify-between pt-1 border-t border-orange-200/60">
+                      <span className="text-[13px] font-bold text-gray-800">Total Biaya Sewa</span>
+                      <div className="text-right">
+                        <span className="text-[20px] font-black text-orange-600 leading-none">
+                          {formatPrice(rentalTotal)}
+                        </span>
+                        <span className="text-[10px] text-gray-500 block">+PPN 11%</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* ── License: Duration + Seats ────────────────────────── */}
+              {/* ── License: Duration + Seats + Benefits ──────────────── */}
               {isLicense && !isRental && (
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl px-4 py-2.5">
-                    <span className="material-symbols-outlined text-purple-600 text-[18px] flex-shrink-0">key</span>
-                    <span className="text-[13px] font-semibold text-purple-700">Lisensi Software — Pilih Durasi & Jumlah Seat</span>
+                <div className="flex flex-col gap-3.5 bg-purple-50/50 border border-purple-200 rounded-2xl p-4 sm:p-5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-sm shadow-purple-600/20">
+                      <span className="material-symbols-outlined text-[18px]">key</span>
+                    </span>
+                    <div>
+                      <h4 className="text-[13px] sm:text-[14px] font-bold text-gray-900 leading-tight">
+                        Lisensi Software & Cloud
+                      </h4>
+                      <p className="text-[11px] text-gray-500">Pilih durasi masa aktif dan jumlah akun user/seat</p>
+                    </div>
                   </div>
 
+                  {/* Pilihan Durasi */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Durasi Lisensi</label>
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                      {LICENSE_DURATIONS.map(d => (
+                    <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">
+                      Durasi Masa Aktif
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      {LICENSE_DURATIONS.map((d) => (
                         <button
                           key={d.id}
+                          type="button"
                           onClick={() => setLicenseDuration(d.id)}
-                          className={`py-2.5 rounded-xl border-2 text-[13px] font-bold transition-all ${
+                          className={`py-2 px-2 rounded-xl border text-center transition-all relative ${
                             licenseDuration === d.id
-                              ? 'border-primary bg-primary text-white shadow-md shadow-primary/20'
-                              : 'border-gray-200 text-gray-700 hover:border-primary/50'
+                              ? 'border-purple-600 bg-purple-600 text-white shadow-md shadow-purple-600/20'
+                              : 'border-gray-200 bg-white text-gray-700 hover:border-purple-300'
                           }`}
                         >
-                          {d.label}
-                          {d.id !== 'lifetime' && (
-                            <span className={`block text-[10px] font-normal ${licenseDuration === d.id ? 'text-blue-100' : 'text-gray-400'}`}>
-                              {d.id === '1y' ? 'Standar' : d.id === '2y' ? 'Hemat 10%' : 'Hemat 17%'}
+                          {d.isPopular && licenseDuration !== d.id && (
+                            <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[8px] bg-amber-400 text-amber-950 px-1.5 rounded-full font-bold whitespace-nowrap">
+                              Populer
                             </span>
                           )}
+                          <div className="text-[12px] font-bold leading-tight">{d.label}</div>
+                          <span className={`text-[10px] block mt-0.5 ${
+                            licenseDuration === d.id ? 'text-purple-100' : 'text-purple-600 font-semibold'
+                          }`}>
+                            {d.badge}
+                          </span>
                         </button>
                       ))}
                     </div>
                   </div>
 
+                  {/* Pilihan User / Seat */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Jumlah User / Seat</label>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
+                    <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">
+                      Jumlah User / Seat
+                    </label>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Stepper */}
+                      <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden bg-white">
                         <button
-                          onClick={() => setLicenseSeats(s => Math.max(1, s - 1))}
-                          className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-40"
+                          type="button"
+                          onClick={() => setLicenseSeats((s) => Math.max(1, s - 1))}
+                          className="w-9 h-9 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-40"
                           disabled={licenseSeats <= 1}
                         >
-                          <span className="material-symbols-outlined text-[18px]">remove</span>
+                          <span className="material-symbols-outlined text-[17px]">remove</span>
                         </button>
                         <input
                           type="number"
                           min={1}
                           max={999}
                           value={licenseSeats}
-                          onChange={e => setLicenseSeats(Math.max(1, parseInt(e.target.value) || 1))}
-                          className="w-16 text-center font-bold text-[15px] text-gray-800 border-x border-gray-200 h-10 focus:outline-none"
+                          onChange={(e) => setLicenseSeats(Math.max(1, parseInt(e.target.value) || 1))}
+                          className="w-14 text-center font-bold text-[14px] text-gray-800 border-x border-gray-200 h-9 focus:outline-none"
                         />
                         <button
-                          onClick={() => setLicenseSeats(s => s + 1)}
-                          className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                          type="button"
+                          onClick={() => setLicenseSeats((s) => s + 1)}
+                          className="w-9 h-9 flex items-center justify-center hover:bg-gray-50 transition-colors"
                         >
-                          <span className="material-symbols-outlined text-[18px]">add</span>
+                          <span className="material-symbols-outlined text-[17px]">add</span>
                         </button>
                       </div>
-                      <span className="text-[12px] text-gray-500">user / seat</span>
+
+                      {/* Quick Seat Chips */}
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {LICENSE_SEAT_PRESETS.map((cnt) => (
+                          <button
+                            key={cnt}
+                            type="button"
+                            onClick={() => setLicenseSeats(cnt)}
+                            className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors border ${
+                              licenseSeats === cnt
+                                ? 'bg-purple-600 text-white border-purple-600'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-purple-300'
+                            }`}
+                          >
+                            {cnt} {cnt >= 100 ? 'Enterprise' : 'User'}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-center justify-between">
-                    <div className="text-[13px] text-purple-700">
-                      {licenseSeats} seat × {selectedLicenseDuration?.label}
+                  {/* Benefit Lisensi */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                    <div className="flex items-center gap-1.5 bg-white p-2 rounded-lg border border-purple-100 text-[11px] text-gray-700">
+                      <span className="material-symbols-outlined text-[15px] text-emerald-600">bolt</span>
+                      <span>Aktivasi Cepat</span>
                     </div>
-                    <div className="font-extrabold text-[18px] text-primary">
-                      {formatPrice(licenseTotal)}
+                    <div className="flex items-center gap-1.5 bg-white p-2 rounded-lg border border-purple-100 text-[11px] text-gray-700">
+                      <span className="material-symbols-outlined text-[15px] text-blue-600">verified</span>
+                      <span>100% Resmi</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-white p-2 rounded-lg border border-purple-100 text-[11px] text-gray-700">
+                      <span className="material-symbols-outlined text-[15px] text-purple-600">support_agent</span>
+                      <span>Bantuan Setup</span>
+                    </div>
+                  </div>
+
+                  {/* Ringkasan Biaya Lisensi */}
+                  <div className="p-3.5 rounded-xl bg-purple-100/70 border border-purple-200">
+                    <div className="flex items-center justify-between text-[11px] text-purple-950 mb-1">
+                      <span>Rincian Biaya Lisensi:</span>
+                      <span className="font-semibold">{licenseSeats} Seat × {selectedLicenseDuration?.label}</span>
+                    </div>
+                    <div className="flex items-baseline justify-between pt-1 border-t border-purple-200">
+                      <span className="text-[13px] font-bold text-gray-800">Total Biaya Lisensi</span>
+                      <div className="text-right">
+                        <span className="text-[20px] font-black text-purple-700 leading-none">
+                          {formatPrice(licenseTotal)}
+                        </span>
+                        <span className="text-[10px] text-gray-500 block">+PPN 11%</span>
+                      </div>
                     </div>
                   </div>
                 </div>

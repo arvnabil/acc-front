@@ -1,4 +1,4 @@
-﻿/**
+/**
  * transform.mjs – TAHAP 1 Data transformation
  *
  * Reads:  "static template/wc-product-export-9-10-2026.json"
@@ -94,9 +94,21 @@ function buildAttributes(row) {
 
 // --- load data --------------------------------------------------------------
 
-console.log("?? Reading source JSON …");
+console.log("📦 Reading source JSON …");
 const raw = JSON.parse(fs.readFileSync(SRC_JSON, "utf-8"));
 console.log(`   ${raw.length} rows total`);
+
+const TINYMCE_JSON = path.join(ROOT, "src", "data", "produk-deskripsi-tinymce.json");
+let tinymceMap = new Map();
+if (fs.existsSync(TINYMCE_JSON)) {
+  try {
+    const tmList = JSON.parse(fs.readFileSync(TINYMCE_JSON, "utf-8"));
+    tinymceMap = new Map(tmList.map(t => [String(t.id), t]));
+    console.log(`   ${tinymceMap.size} TinyMCE descriptions loaded`);
+  } catch (e) {
+    console.warn("Failed to load TinyMCE descriptions:", e.message);
+  }
+}
 
 const published = raw.filter(r => r["Telah Terbit"] === "1");
 console.log(`   ${published.length} published rows`);
@@ -255,8 +267,8 @@ for (const row of [...simpleRows, ...variableRows]) {
     slug: slugify(row["Nama"] || row["SKU"] || String(productId)),
     type: row["Tipe"] === "variable" ? "variable" : "simple",
     is_featured: row["Apakah diunggulkan?"] === "1",
-    short_description: cleanHtml(row["Deskripsi singkat"]),
-    description: cleanHtml(row["Deskripsi"]),
+    short_description: tinymceMap.get(String(row["ID"]))?.deskripsi_singkat ?? cleanHtml(row["Deskripsi singkat"]),
+    description: tinymceMap.get(String(row["ID"]))?.deskripsi ?? cleanHtml(row["Deskripsi"]),
     regular_price: regularPrice,
     sale_price: salePrice,
     is_dummy_price: isDummyPrice,

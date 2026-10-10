@@ -9,9 +9,26 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../context/ToastContext';
+import RentalBookingModal from './RentalBookingModal';
+import LicenseConfigModal from './LicenseConfigModal';
+
+const RENTAL_CAT_IDS = [13, 14]; // 'Sewa', 'Sewa Produk'
+const LICENSE_CAT_IDS = [28]; // 'Cloud' (software/license)
 
 // ─── Badge top-left ───────────────────────────────────────────────────────
-function CardBadge({ product }) {
+function CardBadge({ product, isRental, isLicense }) {
+  if (isRental) return (
+    <span className="bg-orange-600 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm">
+      <span className="material-symbols-outlined text-[12px]">calendar_month</span>
+      Layanan Sewa
+    </span>
+  );
+  if (isLicense) return (
+    <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm">
+      <span className="material-symbols-outlined text-[12px]">key</span>
+      Lisensi Digital
+    </span>
+  );
   if (product.is_featured) return (
     <span className="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded">Best Seller</span>
   );
@@ -30,10 +47,20 @@ function CardBadge({ product }) {
 }
 
 // ─── Stock badge ──────────────────────────────────────────────────────────
-function StockBadge({ stock }) {
+function StockBadge({ stock, isRental, isLicense }) {
   if (stock === 0) return (
     <span className="inline-block text-[10px] sm:text-[11px] font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded leading-tight">
-      Stok Habis
+      {isRental ? 'Stok Sewa Habis' : 'Stok Habis'}
+    </span>
+  );
+  if (isRental) return (
+    <span className="inline-block text-[10px] sm:text-[11px] font-bold bg-orange-50 text-orange-800 border border-orange-200/60 px-2 py-0.5 rounded leading-tight">
+      Siap Sewa: {stock} Unit
+    </span>
+  );
+  if (isLicense) return (
+    <span className="inline-block text-[10px] sm:text-[11px] font-bold bg-purple-50 text-purple-800 border border-purple-200/60 px-2 py-0.5 rounded leading-tight">
+      Aktivasi Instan
     </span>
   );
   if (stock <= 5) return (
@@ -61,9 +88,18 @@ export default function ProductCard({ product }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [added, setAdded] = useState(false);
   const [wishlistAnim, setWishlistAnim] = useState(false);
+  const [showRentalModal, setShowRentalModal] = useState(false);
+  const [showLicenseModal, setShowLicenseModal] = useState(false);
 
   const { wishlist, toggleWishlist: toggleWishlistGlobal, isInWishlist } = useWishlist();
   const { showToast } = useToast();
+
+  const isRental = (product?.category_ids || []).some(id => RENTAL_CAT_IDS.includes(id))
+    || (product?.name || '').toLowerCase().includes('sewa ');
+  const isLicense = (product?.category_ids || []).some(id => LICENSE_CAT_IDS.includes(id))
+    || ['zoom', 'microsoft', 'google workspace', 'teams', 'adobe', 'lisensi', 'license'].some(
+        kw => (product?.name || '').toLowerCase().includes(kw)
+      );
 
   const image = (product.images?.[0] || '').split(',')[0].trim() ||
     `https://picsum.photos/seed/${product.sku || product.id}/400/400`;
@@ -99,6 +135,19 @@ export default function ProductCard({ product }) {
     e.preventDefault();
     e.stopPropagation();
     if (isOutOfStock) return;
+
+    // Jika produk rental / sewa, buka popup set tanggal & jam
+    if (isRental) {
+      setShowRentalModal(true);
+      return;
+    }
+
+    // Jika produk lisensi, buka popup pilih durasi & seat
+    if (isLicense) {
+      setShowLicenseModal(true);
+      return;
+    }
+
     addItem(product, 1);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
@@ -113,14 +162,20 @@ export default function ProductCard({ product }) {
   }
 
   return (
-    <div className="group bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col transition-all hover:shadow-lg hover:border-primary/40">
-      {/* Image area */}
+    <div className={`group bg-white border rounded-xl overflow-hidden flex flex-col transition-all hover:shadow-lg ${
+      isRental
+        ? 'border-orange-200/80 hover:border-orange-400'
+        : isLicense
+        ? 'border-purple-200/80 hover:border-purple-400'
+        : 'border-gray-200 hover:border-primary/40'
+    }`}>
+      {/* Image area – 1:1 square, white bg, object-contain (Shopee/Tokopedia style) */}
       <Link to={`/produk/${product.slug}`} className="block">
-        <div className="relative bg-gray-50 overflow-hidden" style={{ aspectRatio: '4/3' }}>
+        <div className="relative bg-white overflow-hidden" style={{ aspectRatio: '1/1' }}>
           
           {/* Top-left: label badge */}
           <div className="absolute top-2 left-2 z-10">
-            <CardBadge product={product} />
+            <CardBadge product={product} isRental={isRental} isLicense={isLicense} />
           </div>
 
           {/* Top-right: wishlist heart button */}
@@ -150,7 +205,7 @@ export default function ProductCard({ product }) {
             src={image}
             alt={product.name}
             onLoad={() => setImageLoaded(true)}
-            className={`w-full h-full object-contain p-4 transition-all duration-300 group-hover:scale-[1.03] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            className={`w-full h-full object-contain p-3 transition-all duration-300 group-hover:scale-[1.04] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             loading="lazy"
             onError={e => {
               e.target.src = `https://picsum.photos/seed/${product.id}/400/400`;
@@ -161,7 +216,9 @@ export default function ProductCard({ product }) {
           {/* Out of stock overlay */}
           {isOutOfStock && (
             <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
-              <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 rounded-full">Stok Habis</span>
+              <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 rounded-full">
+                {isRental ? 'Stok Sewa Habis' : 'Stok Habis'}
+              </span>
             </div>
           )}
         </div>
@@ -176,14 +233,20 @@ export default function ProductCard({ product }) {
 
         {/* Product name */}
         <Link to={`/produk/${product.slug}`}>
-          <h3 className="text-[13px] font-semibold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[2.6em]">
+          <h3 className={`text-[13px] font-semibold line-clamp-2 leading-snug transition-colors min-h-[2.6em] ${
+            isRental
+              ? 'text-gray-800 group-hover:text-orange-600'
+              : isLicense
+              ? 'text-gray-800 group-hover:text-purple-700'
+              : 'text-gray-800 group-hover:text-primary'
+          }`}>
             {product.name}
           </h3>
         </Link>
 
         {/* Stock badge */}
         <div className="mt-0.5">
-          <StockBadge stock={product.stock} />
+          <StockBadge stock={product.stock} isRental={isRental} isLicense={isLicense} />
         </div>
 
         {/* Price section */}
@@ -193,14 +256,35 @@ export default function ProductCard({ product }) {
               <span className="text-[11px] text-gray-400 line-through">
                 {formatPrice(product.regular_price)}
               </span>
+              {isRental && (
+                <span className="text-[10px] text-orange-600 font-medium">/ hari</span>
+              )}
+              {isLicense && !isRental && (
+                <span className="text-[10px] text-purple-600 font-medium">/ thn</span>
+              )}
               <span className="text-[10px] text-gray-400">+PPN 11%</span>
             </div>
           )}
-          <div className="flex items-baseline gap-1">
-            <span className="text-[15px] font-bold text-primary">
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span className={`text-[15px] font-bold ${
+              isRental ? 'text-orange-600' : isLicense ? 'text-purple-700' : 'text-primary'
+            }`}>
               {formatPrice(price)}
             </span>
-            {!hasDiscount && (
+            {isRental ? (
+              <span className="text-[11px] font-bold text-orange-700 bg-orange-100/70 px-1.5 py-0.2 rounded leading-tight">
+                / hari
+              </span>
+            ) : isLicense ? (
+              <span className="text-[11px] font-bold text-purple-700 bg-purple-100/70 px-1.5 py-0.2 rounded leading-tight">
+                / seat / thn
+              </span>
+            ) : (
+              !hasDiscount && (
+                <span className="text-[10px] text-gray-400">+PPN 11%</span>
+              )
+            )}
+            {(isRental || isLicense) && !hasDiscount && (
               <span className="text-[10px] text-gray-400">+PPN 11%</span>
             )}
           </div>
@@ -211,19 +295,31 @@ export default function ProductCard({ product }) {
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            aria-label={`Tambah ${product.name} ke keranjang`}
+            aria-label={
+              isRental
+                ? `Atur sewa ${product.name}`
+                : isLicense
+                ? `Pilih lisensi ${product.name}`
+                : `Tambah ${product.name} ke keranjang`
+            }
             className={`flex-1 min-w-0 h-9 rounded-lg text-[11px] sm:text-[12px] font-bold flex items-center justify-center gap-1 px-1.5 sm:px-2 transition-all shadow-sm
               ${added
                 ? 'bg-emerald-600 text-white'
                 : isOutOfStock
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : isRental
+                ? 'bg-orange-600 hover:bg-orange-700 text-white active:scale-95 shadow-orange-600/20'
+                : isLicense
+                ? 'bg-purple-600 hover:bg-purple-700 text-white active:scale-95 shadow-purple-600/20'
                 : 'bg-primary hover:bg-primary/90 text-white active:scale-95'
               }`}
           >
             <span className="material-symbols-outlined text-[15px] flex-shrink-0">
-              {added ? 'check' : 'add_shopping_cart'}
+              {added ? 'check' : isRental ? 'event_available' : isLicense ? 'key' : 'add_shopping_cart'}
             </span>
-            <span className="truncate">{added ? 'Ditambahkan' : '+Keranjang'}</span>
+            <span className="truncate">
+              {added ? 'Ditambahkan' : isRental ? '+ Sewa' : isLicense ? '+ Lisensi' : '+Keranjang'}
+            </span>
           </button>
 
           <Link
@@ -234,6 +330,32 @@ export default function ProductCard({ product }) {
           </Link>
         </div>
       </div>
+
+      {/* Popup / Modal Set Tanggal & Jam Sewa */}
+      {isRental && (
+        <RentalBookingModal
+          product={product}
+          isOpen={showRentalModal}
+          onClose={() => setShowRentalModal(false)}
+          onSuccess={() => {
+            setAdded(true);
+            setTimeout(() => setAdded(false), 2000);
+          }}
+        />
+      )}
+
+      {/* Popup / Modal Konfigurasi Lisensi */}
+      {isLicense && (
+        <LicenseConfigModal
+          product={product}
+          isOpen={showLicenseModal}
+          onClose={() => setShowLicenseModal(false)}
+          onSuccess={() => {
+            setAdded(true);
+            setTimeout(() => setAdded(false), 2000);
+          }}
+        />
+      )}
     </div>
   );
 }
