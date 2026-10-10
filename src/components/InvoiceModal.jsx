@@ -73,7 +73,7 @@ export default function InvoiceModal({ isOpen, onClose, order, user }) {
         <div className="no-print flex items-center justify-between px-6 py-3.5 bg-gray-50 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-[22px]">receipt_long</span>
-            <span className="font-bold text-sm text-gray-800">Faktur Pembelian #{order.id || invoiceNumber}</span>
+            <span className="font-bold text-sm text-gray-800">Invoice Pembelian #{order.id || invoiceNumber}</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -95,26 +95,22 @@ export default function InvoiceModal({ isOpen, onClose, order, user }) {
         {/* Printable Invoice Sheet */}
         <div className="overflow-y-auto p-6 sm:p-10 flex-1 bg-white" id="invoice-printable-area" ref={invoiceRef}>
           {/* Header Row: Logo left, Accommerce right */}
-          <div className="flex items-start justify-between pb-8 border-b border-gray-200">
+          <div className="flex items-start justify-between pb-6 border-b border-gray-200">
             <div>
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-[#1a56db] text-white flex items-center justify-center font-bold text-xl shadow-xs">
-                  @
-                </div>
-                <span className="text-2xl font-black text-[#1a56db] tracking-tight">ccommerce</span>
-              </div>
-              <p className="text-[11px] font-semibold text-gray-600 mt-1 tracking-wide">
-                Original · Trusted · Professional
-              </p>
+              <img
+                src="/accommerce-blue.png"
+                alt="Accommerce"
+                className="h-11 sm:h-12 w-auto object-contain"
+              />
             </div>
             <div className="text-right">
               <span className="text-sm font-bold text-gray-900 tracking-wide">Accommerce</span>
             </div>
           </div>
 
-          {/* Title: FAKTUR */}
+          {/* Title: INVOICE */}
           <div className="mt-8 mb-6">
-            <h1 className="text-2xl font-black text-black tracking-tight uppercase">FAKTUR</h1>
+            <h1 className="text-2xl font-black text-black tracking-tight uppercase">INVOICE</h1>
           </div>
 
           {/* Two Columns: Customer Info & Invoice Meta */}
@@ -132,7 +128,7 @@ export default function InvoiceModal({ isOpen, onClose, order, user }) {
             {/* Right: Invoice Metadata */}
             <div className="sm:text-right space-y-1">
               <div className="flex justify-between sm:justify-end gap-4">
-                <span className="text-gray-600">Nomor faktur:</span>
+                <span className="text-gray-600">Nomor invoice:</span>
                 <span className="font-bold text-gray-900">{invoiceNumber}</span>
               </div>
               <div className="flex justify-between sm:justify-end gap-4">
@@ -204,7 +200,7 @@ export default function InvoiceModal({ isOpen, onClose, order, user }) {
 
           {/* Stamp / Verification Note */}
           <div className="mt-12 pt-6 border-t border-dashed border-gray-200 text-center text-[11px] text-gray-400">
-            Faktur ini sah dan diproses secara otomatis oleh sistem komputer PT Accommerce Indonesia Solusindo.
+            Invoice ini sah dan diproses secara otomatis oleh sistem komputer PT Accommerce Indonesia Solusindo.
           </div>
         </div>
 
@@ -225,7 +221,7 @@ export default function InvoiceModal({ isOpen, onClose, order, user }) {
               className="px-5 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
             >
               <span className="material-symbols-outlined text-[16px]">download</span>
-              Unduh Faktur PDF
+              Unduh Invoice PDF
             </button>
           </div>
         </div>

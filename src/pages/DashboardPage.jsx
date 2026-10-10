@@ -1454,7 +1454,7 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      {/* INVOICE MODAL (FAKTUR PEMBELIAN) */}
+      {/* INVOICE MODAL */}
       <InvoiceModal
         isOpen={showInvoiceModal}
         onClose={() => setShowInvoiceModal(false)}
